@@ -1,0 +1,62 @@
+<edmx:Edmx Version="4.0" xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx">
+  <edmx:DataServices>
+    <Schema Namespace="RapidAPI.Models" xmlns="http://docs.oasis-open.org/odata/ns/edm">
+      <EntityType Name="Project">
+        <Key>
+          <PropertyRef Name="Id" />
+        </Key>
+        <Property Name="Id" Type="Edm.Int32" Nullable="false" />
+        <Property Name="AppId" Type="Edm.String" />
+        <Property Name="AppUrl" Type="Edm.String" />
+        <Property Name="AppServicePlanId" Type="Edm.String" />
+        <Property Name="SqlServerId" Type="Edm.String" />
+        <Property Name="SqlServerName" Type="Edm.String" />
+        <Property Name="SqlServerDatabase" Type="Edm.String" />
+        <Property Name="SubScriptionId" Type="Edm.String" />
+        <Property Name="ResourceGroup" Type="Edm.String" />
+        <NavigationProperty Name="Deployments" Type="Collection(RapidAPI.Models.Deployment)" />
+      </EntityType>
+      <EntityType Name="Deployment">
+        <Key>
+          <PropertyRef Name="Id" />
+        </Key>
+        <Property Name="Id" Type="Edm.Int32" Nullable="false" />
+        <Property Name="ProjectId" Type="Edm.Int32" />
+        <Property Name="Status" Type="RapidAPI.Models.DeploymentStatus" Nullable="false" />
+        <Property Name="StartedAt" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="FinishedAt" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="FailureReason" Type="Edm.String" />
+        <NavigationProperty Name="Project" Type="RapidAPI.Models.Project">
+          <ReferentialConstraint Property="ProjectId" ReferencedProperty="Id" />
+        </NavigationProperty>
+      </EntityType>
+      <EnumType Name="DeploymentStatus">
+        <Member Name="InProgress" Value="0" />
+        <Member Name="PackagingApp" Value="1" />
+        <Member Name="ProvisioningResourceGroup" Value="2" />
+        <Member Name="ProvisioningApp" Value="3" />
+        <Member Name="ProvisioningDatabase" Value="4" />
+        <Member Name="DeployingApp" Value="5" />
+        <Member Name="Complete" Value="6" />
+        <Member Name="Failed" Value="7" />
+      </EnumType>
+    </Schema>
+    <Schema Namespace="Default" xmlns="http://docs.oasis-open.org/odata/ns/edm">
+      <Action Name="CreateProject">
+        <Parameter Name="AppId" Type="Edm.String" />
+        <Parameter Name="SubscriptionId" Type="Edm.String" />
+        <Parameter Name="Schema" Type="Edm.String" />
+        <ReturnType Type="RapidAPI.Models.Deployment" Nullable="false" />
+      </Action>
+      <EntityContainer Name="Container">
+        <EntitySet Name="Projects" EntityType="RapidAPI.Models.Project">
+          <NavigationPropertyBinding Path="Deployments" Target="Deployments" />
+        </EntitySet>
+        <EntitySet Name="Deployments" EntityType="RapidAPI.Models.Deployment">
+          <NavigationPropertyBinding Path="Project" Target="Projects" />
+        </EntitySet>
+        <ActionImport Name="CreateProject" Action="Default.CreateProject" EntitySet="Deployments" />
+      </EntityContainer>
+    </Schema>
+  </edmx:DataServices>
+</edmx:Edmx>
