@@ -13,52 +13,18 @@ using LibGit2Sharp;
 using Microsoft.Identity.Client;
 using Newtonsoft.Json;
 using RapidAPI.Models;
+using Ductus.FluentDocker;
+using Ductus.FluentDocker.Builders;
+using Ductus.FluentDocker.Model.Common;
+using Ductus.FluentDocker.Model.Builders;
+using Ductus.FluentDocker.Services.Extensions;
+using Ductus.FluentDocker.Services;
+using System.Diagnostics;
 
 namespace RapidApi
 {
     class Program
     {
-        /// <summary>
-        /// Instance of Cloud
-        /// </summary>
-        private static readonly string AadInstance = ConfigurationManager.AppSettings["ida:AADInstance"];
-
-        /// <summary>
-        /// Tenant
-        /// </summary>
-        private static readonly string Tenant = ConfigurationManager.AppSettings["ida:Tenant"];
-
-        /// <summary>
-        /// ClientID of the application
-        /// </summary>
-        private static readonly string ClientId = ConfigurationManager.AppSettings["ida:ClientId"];
-
-        /// <summary>
-        /// Authority
-        /// </summary>
-        private static readonly string Authority = string.Format(CultureInfo.InvariantCulture, AadInstance, Tenant);
-
-        /// <summary>
-        /// Scope of the TodoList action
-        /// </summary>
-        private static readonly string RapidApiScope = ConfigurationManager.AppSettings["todo:TodoListScope"];
-
-        /// <summary>
-        /// Base address of the todolist Web API
-        /// </summary>
-        private static readonly string RapidApiBaseAddress = ConfigurationManager.AppSettings["todo:TodoListBaseAddress"];
-        private static readonly string[] Scopes = { RapidApiScope };
-        private static string RapidApiAddress
-        {
-            get
-            {
-                string baseAddress = RapidApiBaseAddress;
-                return baseAddress.EndsWith("/") ? RapidApiBaseAddress + "api/todolist"
-                                                 : RapidApiBaseAddress + "/api/todolist";
-            }
-        }
-
-
         static async Task Main(string[] args)
         {
             if (args.Length == 0)
@@ -86,19 +52,30 @@ namespace RapidApi
                 new Option(new string[] { "--appServiceName", "--app" }, "The name of the App Service to create.")
                 {
                     Argument = new Argument<string>()
-                },
+                }
+                //new Option(new string[] { "--deploymenttype", "--dtype" }, "Do you want to deploy locally or to azure.")
+                //{
+                //    Argument = new Argument<string>()
+                //},
             };
 
-            rootCommand.Handler = CommandHandler.Create<FileInfo, string, string>(BootstrapAsync);
+            //  rootCommand.Handler = CommandHandler.Create<FileInfo, string, string>(BootstrapAsync);
+            // await rootCommand.InvokeAsync(args);
+
+
+            rootCommand.Handler = CommandHandler.Create<FileInfo, string, string>(BootstrapApiFromDockerImage);
             await rootCommand.InvokeAsync(args);
+
+            //BootstrapApiFromDockerImage();
+
         }
 
         static async Task BootstrapAsync(FileInfo csdl, string subscriptionId, string appServiceName)
         {
-            //if (subscriptionId != null)
-            //{
-            //    Console.WriteLine($"Subscription Id: {subscriptionId}");
-            //}
+            if (subscriptionId != null)
+            {
+                Console.WriteLine($"Subscription Id: {subscriptionId}");
+            }
 
             if (csdl != null)
             {
@@ -142,6 +119,57 @@ namespace RapidApi
                 var AppUrl = resExpand.Project.AppUrl;
                 Console.WriteLine("Your APP URL IS: " + AppUrl);
             }
+        }
+
+        static void BootstrapApiFromDockerImage(FileInfo csdl, string subscriptionId, string appServiceName)
+        {
+            if (csdl != null)
+            {
+                Console.WriteLine($"Schema Path: {csdl.FullName}");
+            }
+
+            if (appServiceName != null)
+            {
+                Console.WriteLine($"App service name: {appServiceName}");
+            }
+
+            string AppId = appServiceName;
+            string Schema = File.ReadAllText(csdl.FullName);
+            //string SubscriptionId = "e8a5d058-e1b5-48f4-b1ff-b3bc830fb899";
+
+            Random r = new Random();
+            int genRand = r.Next(4000, 9000);
+
+
+
+
+            //FileInfo currentFile = new FileInfo(csdl.FullName);
+            //string newFile = currentFile.Directory.FullName + "\\" + "Project.csdl";
+
+            //if (File.Exists(newFile))
+            //{
+            //    System.IO.File.Delete(newFile);
+            //}
+
+            //FileInfo newFileInfo = new System.IO.File.Move(currentFile.FullName, newFile);
+
+            int port = genRand;
+            using (
+                var container = new Builder()
+                .UseContainer()
+                .UseImage("rapidapiregistry.azurecr.io/rapidapimockserv:latest")         
+                .WithCredential("rapidapiregistry.azurecr.io", "rapidapiregistry", "lfd34HcYycIg+rttO0D5AeZjZL2=pqZt")
+                .ExposePort(port, 80)
+                .CopyOnStart(csdl.FullName, "/app")
+                .Build()
+                .Start()
+                )
+              
+            {                
+                Console.WriteLine("APP URL IS: http://localhost:" + port + "/odata");
+                Console.ReadKey();
+            };
+              
         }
 
     }
