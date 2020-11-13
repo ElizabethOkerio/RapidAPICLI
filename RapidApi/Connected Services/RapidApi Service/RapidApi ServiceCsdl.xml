@@ -8,12 +8,16 @@
         <Property Name="Id" Type="Edm.Int32" Nullable="false" />
         <Property Name="AppId" Type="Edm.String" />
         <Property Name="AppUrl" Type="Edm.String" />
+        <Property Name="ContainerUrl" Type="Edm.String" />
         <Property Name="AppServicePlanId" Type="Edm.String" />
         <Property Name="SqlServerId" Type="Edm.String" />
         <Property Name="SqlServerName" Type="Edm.String" />
         <Property Name="SqlServerDatabase" Type="Edm.String" />
         <Property Name="SubScriptionId" Type="Edm.String" />
         <Property Name="ResourceGroup" Type="Edm.String" />
+        <Property Name="StorageAccountName" Type="Edm.String" />
+        <Property Name="StorageAccountKey" Type="Edm.String" />
+        <Property Name="AzureFileShare" Type="Edm.String" />
         <NavigationProperty Name="Deployments" Type="Collection(RapidAPI.Models.Deployment)" />
       </EntityType>
       <EntityType Name="Deployment">

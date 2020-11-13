@@ -35,8 +35,9 @@ namespace RapidApi
                 Console.WriteLine();
                 Console.WriteLine("OPTIONS");
                 Console.WriteLine("--schema <Path to xml schema file>");
-                Console.WriteLine("--subscriptionId <The Azure Subscription Id>");
+                //Console.WriteLine("--subscriptionId <The Azure Subscription Id>");
                 Console.WriteLine("--app <The name of the app service to create.>");
+                Console.WriteLine("--remote");
                 return;
             }
             var rootCommand = new RootCommand("Odata CLI Tool to bootstrap an Odata service")
@@ -49,9 +50,13 @@ namespace RapidApi
                 //{
                 //    Argument = new Argument<string>()
                 //},
-                new Option(new string[] { "--appServiceName", "--app" }, "The name of the App Service to create.")
+                new Option(new string[] { "--appServiceName", "--app" }, "The name of the App Service to create if deploying to azure.")
                 {
                     Argument = new Argument<string>()
+                },
+                new Option(new string[] { "--remote" }, "Whether to deploy the mock service remotely to azure.")
+                {
+                    Argument = new Argument<bool>()
                 }
                 //new Option(new string[] { "--deploymenttype", "--dtype" }, "Do you want to deploy locally or to azure.")
                 //{
@@ -63,37 +68,52 @@ namespace RapidApi
             // await rootCommand.InvokeAsync(args);
 
 
-            rootCommand.Handler = CommandHandler.Create<FileInfo, string, string>(BootstrapApiFromDockerImage);
+            rootCommand.Handler = CommandHandler.Create<FileInfo, string, bool>(RunCommand);
             await rootCommand.InvokeAsync(args);
 
             //BootstrapApiFromDockerImage();
 
         }
 
-        static async Task BootstrapAsync(FileInfo csdl, string subscriptionId, string appServiceName)
+        static async Task RunCommand(FileInfo csdl, string appServiceName, bool remote)
         {
-            if (subscriptionId != null)
+            if (remote)
             {
-                Console.WriteLine($"Subscription Id: {subscriptionId}");
+                await DeployRemotely(csdl, appServiceName);
+            }
+            else
+            {
+                DeployLocally(csdl);
+            }
+        }
+
+        static async Task DeployRemotely(FileInfo csdl, string appServiceName)
+        {
+            if (appServiceName == null)
+            {
+                Console.Error.WriteLine("Please specify unique app name for remote deployment");
+                Environment.Exit(1);
             }
 
-            if (csdl != null)
+            if (csdl == null)
             {
-                Console.WriteLine($"Schema Path: {csdl.FullName}");
+                Console.Error.WriteLine("Please specify the schema file for your project");
+                Environment.Exit(1);
             }
 
-            if (appServiceName != null)
-            {
-                Console.WriteLine($"App service name: {appServiceName}");
-            }
+            Console.WriteLine($"Schema Path: {csdl.FullName}");
+            Console.WriteLine($"App service name: {appServiceName}");
 
             string AppId = appServiceName;
             string Schema = File.ReadAllText(csdl.FullName);
             string SubscriptionId = "e8a5d058-e1b5-48f4-b1ff-b3bc830fb899";
 
-            Console.WriteLine("Creating Project");
+            Console.WriteLine("Creating Project...");
             var rapidApi = new Container(new Uri("https://testrapidapiservice.azurewebsites.net/odata/"));
             rapidApi.MergeOption = Microsoft.OData.Client.MergeOption.NoTracking;
+            // 7 minutes, deployment usually takes around 4 minutes. But we should make the call async on the server to avoid timeouts
+            rapidApi.Timeout = 7 * 60;
+            
             var res = await rapidApi.CreateProject(AppId, SubscriptionId, Schema).GetValueAsync();
 
             var resExpand = await rapidApi.Deployments.ByKey(res.Id).Expand("Project").GetValueAsync();
@@ -116,59 +136,43 @@ namespace RapidApi
             }
             else 
             {
-                var AppUrl = resExpand.Project.AppUrl;
-                Console.WriteLine("Your APP URL IS: " + AppUrl);
+                var containerUrl = resExpand.Project.ContainerUrl;
+                Console.WriteLine("Your APP URL IS: " + containerUrl);
             }
         }
 
-        static void BootstrapApiFromDockerImage(FileInfo csdl, string subscriptionId, string appServiceName)
+        static void DeployLocally(FileInfo csdl)
         {
             if (csdl != null)
             {
                 Console.WriteLine($"Schema Path: {csdl.FullName}");
             }
 
-            if (appServiceName != null)
-            {
-                Console.WriteLine($"App service name: {appServiceName}");
-            }
-
-            string AppId = appServiceName;
             string Schema = File.ReadAllText(csdl.FullName);
-            //string SubscriptionId = "e8a5d058-e1b5-48f4-b1ff-b3bc830fb899";
 
             Random r = new Random();
             int genRand = r.Next(4000, 9000);
 
 
 
-
-            //FileInfo currentFile = new FileInfo(csdl.FullName);
-            //string newFile = currentFile.Directory.FullName + "\\" + "Project.csdl";
-
-            //if (File.Exists(newFile))
-            //{
-            //    System.IO.File.Delete(newFile);
-            //}
-
-            //FileInfo newFileInfo = new System.IO.File.Move(currentFile.FullName, newFile);
-
             int port = genRand;
+            
             using (
                 var container = new Builder()
                 .UseContainer()
-                .UseImage("rapidapiregistry.azurecr.io/rapidapimockserv:latest")         
+                .UseImage("rapidapiregistry.azurecr.io/rapidapimockserv:latest")
                 .WithCredential("rapidapiregistry.azurecr.io", "rapidapiregistry", "lfd34HcYycIg+rttO0D5AeZjZL2=pqZt")
                 .ExposePort(port, 80)
-                .CopyOnStart(csdl.FullName, "/app")
+                .CopyOnStart(csdl.FullName, "/app/Project.csdl")
                 .Build()
                 .Start()
                 )
-              
-            {                
+
+            {
                 Console.WriteLine("APP URL IS: http://localhost:" + port + "/odata");
                 Console.ReadKey();
             };
+            
               
         }
 
