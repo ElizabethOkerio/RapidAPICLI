@@ -1,11 +1,12 @@
 ﻿{
   "ProviderId": "Microsoft.OData.ConnectedService",
-  "Version": "0.10.0.0",
+  "Version": "0.11.1.0",
   "GettingStartedDocument": {
     "Uri": "http://odata.github.io/odata.net/"
   },
   "ExtendedData": {
     "ExcludedOperationImports": [],
+    "ExcludedBoundOperations": [],
     "EnableNamingAlias": false,
     "IgnoreUnexpectedElementsAndAttributes": false,
     "IncludeT4File": false,

@@ -8,12 +8,12 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-// Generation date: 9/25/2020 11:24:18 AM
+// Generation date: 13/11/2020 17:10:38
 namespace RapidAPI.Models
 {
-    /// <summary>
-    /// There are no comments for ProjectSingle in the schema.
-    /// </summary>
+        /// <summary>
+        /// There are no comments for ProjectSingle in the schema.
+        /// </summary>
     public partial class ProjectSingle : global::Microsoft.OData.Client.DataServiceQuerySingle<Project>
     {
         /// <summary>
@@ -56,9 +56,9 @@ namespace RapidAPI.Models
         [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.OData.Client.Design.T4", "#VersionNumber#")]
         private global::Microsoft.OData.Client.DataServiceQuery<global::RapidAPI.Models.Deployment> _Deployments;
     }
-    /// <summary>
-    /// There are no comments for Project in the schema.
-    /// </summary>
+        /// <summary>
+        /// There are no comments for Project in the schema.
+        /// </summary>
     /// <KeyProperties>
     /// Id
     /// </KeyProperties>
@@ -139,6 +139,27 @@ namespace RapidAPI.Models
         private string _AppUrl;
         partial void OnAppUrlChanging(string value);
         partial void OnAppUrlChanged();
+        /// <summary>
+        /// There are no comments for Property ContainerUrl in the schema.
+        /// </summary>
+        [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.OData.Client.Design.T4", "#VersionNumber#")]
+        public virtual string ContainerUrl
+        {
+            get
+            {
+                return this._ContainerUrl;
+            }
+            set
+            {
+                this.OnContainerUrlChanging(value);
+                this._ContainerUrl = value;
+                this.OnContainerUrlChanged();
+            }
+        }
+        [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.OData.Client.Design.T4", "#VersionNumber#")]
+        private string _ContainerUrl;
+        partial void OnContainerUrlChanging(string value);
+        partial void OnContainerUrlChanged();
         /// <summary>
         /// There are no comments for Property AppServicePlanId in the schema.
         /// </summary>
@@ -266,6 +287,69 @@ namespace RapidAPI.Models
         partial void OnResourceGroupChanging(string value);
         partial void OnResourceGroupChanged();
         /// <summary>
+        /// There are no comments for Property StorageAccountName in the schema.
+        /// </summary>
+        [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.OData.Client.Design.T4", "#VersionNumber#")]
+        public virtual string StorageAccountName
+        {
+            get
+            {
+                return this._StorageAccountName;
+            }
+            set
+            {
+                this.OnStorageAccountNameChanging(value);
+                this._StorageAccountName = value;
+                this.OnStorageAccountNameChanged();
+            }
+        }
+        [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.OData.Client.Design.T4", "#VersionNumber#")]
+        private string _StorageAccountName;
+        partial void OnStorageAccountNameChanging(string value);
+        partial void OnStorageAccountNameChanged();
+        /// <summary>
+        /// There are no comments for Property StorageAccountKey in the schema.
+        /// </summary>
+        [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.OData.Client.Design.T4", "#VersionNumber#")]
+        public virtual string StorageAccountKey
+        {
+            get
+            {
+                return this._StorageAccountKey;
+            }
+            set
+            {
+                this.OnStorageAccountKeyChanging(value);
+                this._StorageAccountKey = value;
+                this.OnStorageAccountKeyChanged();
+            }
+        }
+        [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.OData.Client.Design.T4", "#VersionNumber#")]
+        private string _StorageAccountKey;
+        partial void OnStorageAccountKeyChanging(string value);
+        partial void OnStorageAccountKeyChanged();
+        /// <summary>
+        /// There are no comments for Property AzureFileShare in the schema.
+        /// </summary>
+        [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.OData.Client.Design.T4", "#VersionNumber#")]
+        public virtual string AzureFileShare
+        {
+            get
+            {
+                return this._AzureFileShare;
+            }
+            set
+            {
+                this.OnAzureFileShareChanging(value);
+                this._AzureFileShare = value;
+                this.OnAzureFileShareChanged();
+            }
+        }
+        [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.OData.Client.Design.T4", "#VersionNumber#")]
+        private string _AzureFileShare;
+        partial void OnAzureFileShareChanging(string value);
+        partial void OnAzureFileShareChanged();
+        /// <summary>
         /// There are no comments for Property Deployments in the schema.
         /// </summary>
         [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.OData.Client.Design.T4", "#VersionNumber#")]
@@ -287,9 +371,9 @@ namespace RapidAPI.Models
         partial void OnDeploymentsChanging(global::System.Collections.ObjectModel.Collection<global::RapidAPI.Models.Deployment> value);
         partial void OnDeploymentsChanged();
     }
-    /// <summary>
-    /// There are no comments for DeploymentSingle in the schema.
-    /// </summary>
+        /// <summary>
+        /// There are no comments for DeploymentSingle in the schema.
+        /// </summary>
     public partial class DeploymentSingle : global::Microsoft.OData.Client.DataServiceQuerySingle<Deployment>
     {
         /// <summary>
@@ -332,9 +416,9 @@ namespace RapidAPI.Models
         [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.OData.Client.Design.T4", "#VersionNumber#")]
         private global::RapidAPI.Models.ProjectSingle _Project;
     }
-    /// <summary>
-    /// There are no comments for Deployment in the schema.
-    /// </summary>
+        /// <summary>
+        /// There are no comments for Deployment in the schema.
+        /// </summary>
     /// <KeyProperties>
     /// Id
     /// </KeyProperties>
@@ -506,9 +590,9 @@ namespace RapidAPI.Models
         partial void OnProjectChanging(global::RapidAPI.Models.Project value);
         partial void OnProjectChanged();
     }
-    /// <summary>
-    /// There are no comments for DeploymentStatus in the schema.
-    /// </summary>
+        /// <summary>
+        /// There are no comments for DeploymentStatus in the schema.
+        /// </summary>
     public enum DeploymentStatus
     {
         InProgress = 0,
@@ -528,56 +612,56 @@ namespace RapidAPI.Models
         /// <summary>
         /// Get an entity of type global::RapidAPI.Models.Project as global::RapidAPI.Models.ProjectSingle specified by key from an entity set
         /// </summary>
-        /// <param name="source">source entity set</param>
-        /// <param name="keys">dictionary with the names and values of keys</param>
-        public static global::RapidAPI.Models.ProjectSingle ByKey(this global::Microsoft.OData.Client.DataServiceQuery<global::RapidAPI.Models.Project> source, global::System.Collections.Generic.IDictionary<string, object> keys)
+        /// <param name="_source">source entity set</param>
+        /// <param name="_keys">dictionary with the names and values of keys</param>
+        public static global::RapidAPI.Models.ProjectSingle ByKey(this global::Microsoft.OData.Client.DataServiceQuery<global::RapidAPI.Models.Project> _source, global::System.Collections.Generic.IDictionary<string, object> _keys)
         {
-            return new global::RapidAPI.Models.ProjectSingle(source.Context, source.GetKeyPath(global::Microsoft.OData.Client.Serializer.GetKeyString(source.Context, keys)));
+            return new global::RapidAPI.Models.ProjectSingle(_source.Context, _source.GetKeyPath(global::Microsoft.OData.Client.Serializer.GetKeyString(_source.Context, _keys)));
         }
         /// <summary>
         /// Get an entity of type global::RapidAPI.Models.Project as global::RapidAPI.Models.ProjectSingle specified by key from an entity set
         /// </summary>
-        /// <param name="source">source entity set</param>
+        /// <param name="_source">source entity set</param>
         /// <param name="id">The value of id</param>
-        public static global::RapidAPI.Models.ProjectSingle ByKey(this global::Microsoft.OData.Client.DataServiceQuery<global::RapidAPI.Models.Project> source,
+        public static global::RapidAPI.Models.ProjectSingle ByKey(this global::Microsoft.OData.Client.DataServiceQuery<global::RapidAPI.Models.Project> _source,
             int id)
         {
-            global::System.Collections.Generic.IDictionary<string, object> keys = new global::System.Collections.Generic.Dictionary<string, object>
+            global::System.Collections.Generic.IDictionary<string, object> _keys = new global::System.Collections.Generic.Dictionary<string, object>
             {
                 { "Id", id }
             };
-            return new global::RapidAPI.Models.ProjectSingle(source.Context, source.GetKeyPath(global::Microsoft.OData.Client.Serializer.GetKeyString(source.Context, keys)));
+            return new global::RapidAPI.Models.ProjectSingle(_source.Context, _source.GetKeyPath(global::Microsoft.OData.Client.Serializer.GetKeyString(_source.Context, _keys)));
         }
         /// <summary>
         /// Get an entity of type global::RapidAPI.Models.Deployment as global::RapidAPI.Models.DeploymentSingle specified by key from an entity set
         /// </summary>
-        /// <param name="source">source entity set</param>
-        /// <param name="keys">dictionary with the names and values of keys</param>
-        public static global::RapidAPI.Models.DeploymentSingle ByKey(this global::Microsoft.OData.Client.DataServiceQuery<global::RapidAPI.Models.Deployment> source, global::System.Collections.Generic.IDictionary<string, object> keys)
+        /// <param name="_source">source entity set</param>
+        /// <param name="_keys">dictionary with the names and values of keys</param>
+        public static global::RapidAPI.Models.DeploymentSingle ByKey(this global::Microsoft.OData.Client.DataServiceQuery<global::RapidAPI.Models.Deployment> _source, global::System.Collections.Generic.IDictionary<string, object> _keys)
         {
-            return new global::RapidAPI.Models.DeploymentSingle(source.Context, source.GetKeyPath(global::Microsoft.OData.Client.Serializer.GetKeyString(source.Context, keys)));
+            return new global::RapidAPI.Models.DeploymentSingle(_source.Context, _source.GetKeyPath(global::Microsoft.OData.Client.Serializer.GetKeyString(_source.Context, _keys)));
         }
         /// <summary>
         /// Get an entity of type global::RapidAPI.Models.Deployment as global::RapidAPI.Models.DeploymentSingle specified by key from an entity set
         /// </summary>
-        /// <param name="source">source entity set</param>
+        /// <param name="_source">source entity set</param>
         /// <param name="id">The value of id</param>
-        public static global::RapidAPI.Models.DeploymentSingle ByKey(this global::Microsoft.OData.Client.DataServiceQuery<global::RapidAPI.Models.Deployment> source,
+        public static global::RapidAPI.Models.DeploymentSingle ByKey(this global::Microsoft.OData.Client.DataServiceQuery<global::RapidAPI.Models.Deployment> _source,
             int id)
         {
-            global::System.Collections.Generic.IDictionary<string, object> keys = new global::System.Collections.Generic.Dictionary<string, object>
+            global::System.Collections.Generic.IDictionary<string, object> _keys = new global::System.Collections.Generic.Dictionary<string, object>
             {
                 { "Id", id }
             };
-            return new global::RapidAPI.Models.DeploymentSingle(source.Context, source.GetKeyPath(global::Microsoft.OData.Client.Serializer.GetKeyString(source.Context, keys)));
+            return new global::RapidAPI.Models.DeploymentSingle(_source.Context, _source.GetKeyPath(global::Microsoft.OData.Client.Serializer.GetKeyString(_source.Context, _keys)));
         }
     }
 }
 namespace Default
 {
-    /// <summary>
-    /// There are no comments for Container in the schema.
-    /// </summary>
+        /// <summary>
+        /// There are no comments for Container in the schema.
+        /// </summary>
     public partial class Container : global::Microsoft.OData.Client.DataServiceContext
     {
         /// <summary>
