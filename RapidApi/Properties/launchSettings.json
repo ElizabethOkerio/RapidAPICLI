@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "RapidApi": {
+      "commandName": "Project",
+      "commandLineArgs": "--schema C:\\Users\\clhabins\\Desktop\\TrippinServiceRW.xml --remote --app testapp902434"
+    }
+  }
+}

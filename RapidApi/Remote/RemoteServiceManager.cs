@@ -24,6 +24,9 @@ namespace RapidApi.Remote
         private string registryServer;
         private string registryUsername;
         private string registryPassword;
+
+        private static readonly string RemoteCsdlFileName = "Project.csdl";
+        private static readonly string RemoteCsdlFileDir = "schema";
         
 
         public RemoteServiceManager(string tenantId, string clientId, string clientSecret)
@@ -55,9 +58,15 @@ namespace RapidApi.Remote
         /// <param name="appId"></param>
         /// <param name="schema"></param>
         /// <returns></returns>
-        public async Task<RemoteProject> Create(string appId, string schema)
+        public async Task<RemoteDeployment> Create(string appId, string schemaPath)
         {
             var project = new RemoteProject();
+            project.AppId = appId;
+
+            var deployment = new RemoteDeployment();
+            deployment.Project = project;
+            deployment.StartedAt = DateTimeOffset.Now;
+            deployment.DeploymentName = $"dep{appId}";
 
             var rgName = $"rg{appId}";
             var storageAccountName = $"st{appId}";
@@ -81,41 +90,39 @@ namespace RapidApi.Remote
                 .WithAccessFromAllNetworks()
                 .CreateAsync();
             var stKey = storage.GetKeys().First().Value;
+            project.StorageAccountKey = stKey;
 
             var storageConnString = $"DefaultEndpointsProtocol=https;AccountName={storage.Name};AccountKey={stKey}";
             var shareClient = new ShareClient(storageConnString, shareName);
             await shareClient.CreateAsync();
 
             // upload CSDL
-            await UploadSchema(shareClient, schema, "schema", "Project.csdl");
+            await UploadSchema(shareClient, schemaPath, RemoteCsdlFileDir, RemoteCsdlFileName);
 
             var template = TemplateHelper.CreateDeploymentTemplate(project, registryServer, registryUsername, registryPassword);
             var templateJson = JsonSerializer.Serialize(template);
-            await azure.Deployments.Define($"dep{appId}")
+            await azure.Deployments.Define(deployment.DeploymentName)
                     .WithExistingResourceGroup(rgName)
                     .WithTemplate(templateJson)
                     .WithParameters("{}")
                     .WithMode(Microsoft.Azure.Management.ResourceManager.Fluent.Models.DeploymentMode.Incremental)
                     .CreateAsync();
 
-            return project;
+            deployment.FinishedAt = DateTimeOffset.Now;
+
+            return deployment;
         }
 
         /// <summary>
         /// Updates the remote project's schema and restarts the service
         /// </summary>
         /// <param name="project"></param>
-        /// <param name="schema"></param>
+        /// <param name="schemaPath"></param>
         /// <returns></returns>
-        public async Task Update(RemoteProject project, string schema)
+        public async Task UpdateSchema(RemoteProject project, string schemaPath)
         {
-            var schemaBytes = Encoding.UTF8.GetBytes(schema);
-            var schemaStream = new MemoryStream(schemaBytes);
             var shareClient = new ShareClient(project.StorageConnectionString, project.AzureFileShare);
-            var dirClient = shareClient.GetDirectoryClient("schema");
-            var fileClient = dirClient.GetFileClient("Project.csdl");
-            await fileClient.UploadAsync(schemaStream);
-
+            await UploadSchema(shareClient, schemaPath, RemoteCsdlFileDir, RemoteCsdlFileName);
             await azure.ContainerGroups.GetByResourceGroup(project.ResourceGroup, project.AppId).RestartAsync();
         }
 
@@ -129,13 +136,15 @@ namespace RapidApi.Remote
             await azure.ResourceGroups.DeleteByNameAsync(project.ResourceGroup);
         }
 
-        private async Task UploadSchema(ShareClient client, string schema, string targetDir, string targetFile)
+        private async Task UploadSchema(ShareClient client, string schemaPath, string targetDir, string targetFile)
         {
-            var schemaBytes = Encoding.UTF8.GetBytes(schema);
-            var schemaStream = new MemoryStream(schemaBytes);
-            var directoryResponse = await client.CreateDirectoryAsync(targetDir);
-            var fileResponse = await directoryResponse.Value.CreateFileAsync(targetFile, schemaBytes.Length);
-            await fileResponse.Value.UploadAsync(schemaStream);
+            var schemaStream = File.OpenRead(schemaPath);
+
+            var directoryClient = client.GetDirectoryClient(targetDir);
+            await directoryClient.CreateIfNotExistsAsync();
+            var fileClient = directoryClient.GetFileClient(targetFile);
+            await fileClient.CreateAsync(schemaStream.Length);
+            await fileClient.UploadAsync(schemaStream);
         }
     }
 }

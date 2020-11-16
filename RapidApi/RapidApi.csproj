@@ -17,8 +17,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Azure.Storage.Files.Shares" Version="12.5.0" />
     <PackageReference Include="Ductus.FluentDocker" Version="2.7.3" />
     <PackageReference Include="LibGit2Sharp" Version="0.26.2" />
+    <PackageReference Include="Microsoft.Azure.Management.Fluent" Version="1.35.0" />
     <PackageReference Include="Microsoft.Identity.Client" Version="4.18.0" />
     <PackageReference Include="Microsoft.OData.Client" Version="7.7.2" />
     <PackageReference Include="Microsoft.OData.Core" Version="7.7.2" />
