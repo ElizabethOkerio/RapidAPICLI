@@ -1,14 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Threading.Tasks;
-using Default;
-using RapidAPI.Models;
 using Ductus.FluentDocker.Builders;
-using Ductus.FluentDocker.Model.Common;
-using Ductus.FluentDocker.Model.Builders;
-using Ductus.FluentDocker.Services.Extensions;
-using Ductus.FluentDocker.Services;
-using System.Diagnostics;
 using RapidApi.Remote;
 using Microsoft.Extensions.CommandLineUtils;
 using System.Reflection;
@@ -87,7 +80,6 @@ namespace RapidApi
             try
             {
                 // This begins the actual execution of the application
-                Console.WriteLine("RapidAPI app executing...");
                 app.Execute(args);
             }
             catch (CommandParsingException ex)
@@ -101,52 +93,6 @@ namespace RapidApi
             {
                 Console.WriteLine("Unable to execute application: {0}", ex.Message);
             }
-            //if (args.Length == 0)
-            //{
-            //    Console.WriteLine("-------------");
-            //    Console.WriteLine("Odata CLI Tool to bootstrap an Odata service");
-            //    Console.WriteLine("-------------");
-            //    Console.WriteLine();
-            //    Console.WriteLine("OPTIONS");
-            //    Console.WriteLine("--schema <Path to xml schema file>");
-            //    //Console.WriteLine("--subscriptionId <The Azure Subscription Id>");
-            //    Console.WriteLine("--app <The name of the app service to create.>");
-            //    Console.WriteLine("--remote");
-            //    return;
-            //}
-            //var rootCommand = new RootCommand("Odata CLI Tool to bootstrap an Odata service")
-            //{
-            //    new Option(new string[] {"--csdl", "--metadata", "--schema"}, "The path to the xml schema file.")
-            //    {
-            //        Argument = new Argument<FileInfo>()
-            //    },
-            //    //new Option(new string[] { "--subscriptionId", "--id" }, "The Azure Subscription Id.")
-            //    //{
-            //    //    Argument = new Argument<string>()
-            //    //},
-            //    new Option(new string[] { "--appServiceName", "--app" }, "The name of the App Service to create if deploying to azure.")
-            //    {
-            //        Argument = new Argument<string>()
-            //    },
-            //    new Option(new string[] { "--remote" }, "Whether to deploy the mock service remotely to azure.")
-            //    {
-            //        Argument = new Argument<bool>()
-            //    }
-            //    //new Option(new string[] { "--deploymenttype", "--dtype" }, "Do you want to deploy locally or to azure.")
-            //    //{
-            //    //    Argument = new Argument<string>()
-            //    //},
-            //};
-
-            ////  rootCommand.Handler = CommandHandler.Create<FileInfo, string, string>(BootstrapAsync);
-            //// await rootCommand.InvokeAsync(args);
-
-
-            //rootCommand.Handler = CommandHandler.Create<FileInfo, string, bool>(RunCommand);
-            //await rootCommand.InvokeAsync(args);
-
-            //BootstrapApiFromDockerImage();
-
         }
 
         static async Task RunCommand(FileInfo csdl, string appServiceName, bool remote)
