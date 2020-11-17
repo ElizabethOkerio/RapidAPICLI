@@ -20,6 +20,7 @@ using Ductus.FluentDocker.Model.Builders;
 using Ductus.FluentDocker.Services.Extensions;
 using Ductus.FluentDocker.Services;
 using System.Diagnostics;
+using RapidApi.Remote;
 
 namespace RapidApi
 {
@@ -105,40 +106,28 @@ namespace RapidApi
             Console.WriteLine($"App service name: {appServiceName}");
 
             string AppId = appServiceName;
-            string Schema = File.ReadAllText(csdl.FullName);
-            string SubscriptionId = "e8a5d058-e1b5-48f4-b1ff-b3bc830fb899";
+            //string SubscriptionId = "e8a5d058-e1b5-48f4-b1ff-b3bc830fb899";
 
-            Console.WriteLine("Creating Project...");
-            var rapidApi = new Container(new Uri("https://testrapidapiservice.azurewebsites.net/odata/"));
-            rapidApi.MergeOption = Microsoft.OData.Client.MergeOption.NoTracking;
-            // 7 minutes, deployment usually takes around 4 minutes. But we should make the call async on the server to avoid timeouts
-            rapidApi.Timeout = 7 * 60;
-            
-            var res = await rapidApi.CreateProject(AppId, SubscriptionId, Schema).GetValueAsync();
+            var tenantId = "";
+            var clientId = "";
+            var clientSecret = "";
 
-            var resExpand = await rapidApi.Deployments.ByKey(res.Id).Expand("Project").GetValueAsync();
-            var status = resExpand.Status;
-            Console.WriteLine(resExpand.Status.ToString());
-            while (resExpand.Status != DeploymentStatus.Complete && resExpand.Status != DeploymentStatus.Failed)
+            var remoteManager = new RemoteServiceManager(tenantId, clientId, clientSecret);
+            try
             {
-                await Task.Delay(5000);
-                resExpand = await rapidApi.Deployments.ByKey(res.Id).Expand("Project").GetValueAsync();
-                if (resExpand.Status != status)
-                {
-                    Console.WriteLine(resExpand.Status.ToString());
-                    status = resExpand.Status;
-                }            
-            }
+                Console.WriteLine("Deploying resources, please wait...");
+                var deployment = await remoteManager.Create(AppId, csdl.FullName);
+                var project = deployment.Project;
 
-            if (resExpand.Status == DeploymentStatus.Failed)
-            {
-                Console.WriteLine(resExpand.FailureReason);
+                Console.WriteLine($"App created successfully. Your app URL is: {project.AppUrl}");
+
+                
             }
-            else 
+            catch (Exception ex)
             {
-                var containerUrl = resExpand.Project.ContainerUrl;
-                Console.WriteLine("Your APP URL IS: " + containerUrl);
+                Console.Error.WriteLine(ex.Message);
             }
+           
         }
 
         static void DeployLocally(FileInfo csdl)
