@@ -16,10 +16,6 @@ namespace RapidApi.Remote
 {
     public class RemoteServiceManager
     {
-        private string _tenantId;
-        private string _clientId;
-        private string _clientSecret;
-        private AzureCredentials _azureCredentials;
         private IAzure azure;
         private string registryServer;
         private string registryUsername;
@@ -31,20 +27,17 @@ namespace RapidApi.Remote
 
         public RemoteServiceManager(string tenantId, string clientId, string clientSecret)
         {
-            _tenantId = tenantId;
-            _clientId = clientId;
-            _clientSecret = clientSecret;
-            _azureCredentials = SdkContext.AzureCredentialsFactory.FromServicePrincipal(
-                _clientId,
-                _clientSecret,
-                _tenantId,
+            var azureCredentials = SdkContext.AzureCredentialsFactory.FromServicePrincipal(
+                clientId,
+                clientSecret,
+                tenantId,
                 AzureEnvironment.AzureGlobalCloud);
 
 
             azure = Microsoft.Azure.Management.Fluent.Azure
                     .Configure()
                     .WithLogLevel(HttpLoggingDelegatingHandler.Level.Basic)
-                    .Authenticate(_azureCredentials)
+                    .Authenticate(azureCredentials)
                     .WithDefaultSubscription();
 
             registryServer = "rapidapiregistry.azurecr.io";
