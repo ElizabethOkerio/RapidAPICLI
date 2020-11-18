@@ -3,6 +3,8 @@ using Microsoft.Azure.Management.Fluent;
 using Microsoft.Azure.Management.ResourceManager.Fluent;
 using Microsoft.Azure.Management.ResourceManager.Fluent.Authentication;
 using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
+using Microsoft.Azure.Services.AppAuthentication;
+using Microsoft.Rest;
 using RapidApi.Remote.Models;
 using System;
 using System.Collections.Generic;
@@ -16,6 +18,7 @@ namespace RapidApi.Remote
 {
     public class RemoteServiceManager
     {
+        private string _tenantId;
         private IAzure azure;
         private string registryServer;
         private string registryUsername;
@@ -25,24 +28,48 @@ namespace RapidApi.Remote
         private static readonly string RemoteCsdlFileDir = "schema";
         
 
-        public RemoteServiceManager(string tenantId, string clientId, string clientSecret)
+        public RemoteServiceManager(string tenantId, string subscriptionId)
         {
-            var azureCredentials = SdkContext.AzureCredentialsFactory.FromServicePrincipal(
-                clientId,
-                clientSecret,
-                tenantId,
-                AzureEnvironment.AzureGlobalCloud);
+            _tenantId = tenantId;
+            var token = GetToken(tenantId).Result;
+            var tokenCredentials = new TokenCredentials(token);
 
-
-            azure = Microsoft.Azure.Management.Fluent.Azure
+            if (subscriptionId == null)
+            {
+                azure = Microsoft.Azure.Management.Fluent.Azure
                     .Configure()
                     .WithLogLevel(HttpLoggingDelegatingHandler.Level.Basic)
-                    .Authenticate(azureCredentials)
+                    .Authenticate(new AzureCredentials(
+                        tokenCredentials,
+                        tokenCredentials,
+                        tenantId,
+                        AzureEnvironment.AzureGlobalCloud))
                     .WithDefaultSubscription();
+            }
+            else 
+            {
+                azure = Microsoft.Azure.Management.Fluent.Azure
+                    .Configure()
+                    .WithLogLevel(HttpLoggingDelegatingHandler.Level.Basic)
+                    .Authenticate(new AzureCredentials(
+                        tokenCredentials,
+                        tokenCredentials,
+                        tenantId,
+                        AzureEnvironment.AzureGlobalCloud))
+                    .WithSubscription(subscriptionId);
+            }
+
 
             registryServer = "rapidapiregistry.azurecr.io";
             registryUsername = "rapidapiregistry";
-            registryPassword = "lfd34HcYycIg+rttO0D5AeZjZL2=pqZt";
+            registryPassword = "3RSdU=zGg=AIvjesICqISXdBbMiwYigk";
+        }
+
+        public async Task<string> GetToken(string tenantId)
+        {
+            var azureServiceTokenProvider = new AzureServiceTokenProvider();
+            var token = await azureServiceTokenProvider.GetAccessTokenAsync("https://management.azure.com", tenantId);
+            return token;
         }
 
         /// <summary>

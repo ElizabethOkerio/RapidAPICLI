@@ -14,8 +14,7 @@ namespace RapidApi
     class Program
     {
         static string TenantId = "TENANT ID";
-        static string ClientId = "CLIENT ID";
-        static string ClientSecret = "CLIENT SECRET";
+        static string SubscriptionId = "SUBSCRIPTION ID";
 
         static void Main(string[] args)
         {
@@ -61,12 +60,14 @@ namespace RapidApi
 
                 var schemaOption = command.Option("-s|--schema <SCHEMA>", "The path to the xml schema file.", CommandOptionType.SingleValue);
                 var appNameOption = command.Option("-a|--app <APPSERVICENAME>", "The name of the app service to create.", CommandOptionType.SingleValue);
-
+                var tenantIdOption = command.Option("-r|--tenantId <TENANTID>", "The tenant ID to deploy to", CommandOptionType.SingleValue);
+                var subscriptionIdOption = command.Option("-i|--subscriptionId <SUBSCRIPTIONID>", "The subscription Id to use. It is optional though", CommandOptionType.MultipleValue);
                 command.OnExecute(async () =>
                 {
-
-                   await DeployRemotely(new FileInfo(schemaOption.Value()), appNameOption.Value());
-        
+                    TenantId = tenantIdOption.Value();
+                    SubscriptionId = subscriptionIdOption.Value();
+                    //await RunCommand(new FileInfo(schemaOption.Value()),appNameOption.Value(),bool.Parse(remoteOption.Value()));
+                    await DeployRemotely(new FileInfo(schemaOption.Value()), appNameOption.Value(), tenantIdOption.Value(), subscriptionIdOption.Value());
                     return 0; //return 0 on a successful execution
                 });
 
@@ -127,8 +128,19 @@ namespace RapidApi
                 Console.WriteLine("Unable to execute application: {0}", ex.Message);
             }
         }
+        static async Task RunCommand(FileInfo csdl, string appServiceName, bool remote)
+        {
+            if (remote)
+            {
+                //await DeployRemotely(csdl, appServiceName);
+            }
+            else
+            {
+                DeployLocally(csdl);
+            }
+        }
 
-        static async Task DeployRemotely(FileInfo csdl, string appServiceName)
+        static async Task DeployRemotely(FileInfo csdl, string appServiceName, string tenantId, string subscriptionId)
         {
             if (appServiceName == null)
             {
@@ -142,13 +154,20 @@ namespace RapidApi
                 Environment.Exit(1);
             }
 
+            if (tenantId == null)
+            {
+                Console.Error.WriteLine("Please specify your azure tenant Id");
+                Environment.Exit(1);
+            }
+
             Console.WriteLine($"Schema Path: {csdl.FullName}");
             Console.WriteLine($"App service name: {appServiceName}");
+            Console.WriteLine($"Tenant Id: {tenantId}");
 
             string AppId = appServiceName;
             //string SubscriptionId = "e8a5d058-e1b5-48f4-b1ff-b3bc830fb899";
 
-            var remoteManager = new RemoteServiceManager(TenantId, ClientId, ClientSecret);
+            var remoteManager = new RemoteServiceManager(tenantId, subscriptionId);
             try
             {
                 Console.WriteLine("Deploying resources, please wait...");
@@ -185,7 +204,7 @@ namespace RapidApi
             {
                 var project = LoadProject(appServiceName);
                 Console.WriteLine("Updating app, please wait...");
-                var remoteManager = new RemoteServiceManager(TenantId, ClientId, ClientSecret);
+                var remoteManager = new RemoteServiceManager(TenantId, SubscriptionId);
                 await remoteManager.UpdateSchema(project, csdl.FullName);
                 Console.WriteLine($"Update complete. App url is {project.AppUrl}");
             }
@@ -212,7 +231,7 @@ namespace RapidApi
             project.ResourceGroup = $"rg{appName}";
 
             
-            var remoteManager = new RemoteServiceManager(TenantId, ClientId, ClientSecret);
+            var remoteManager = new RemoteServiceManager(TenantId, SubscriptionId);
 
             try
             {
@@ -286,7 +305,7 @@ namespace RapidApi
         static string GetAppJsonPath(string appName)
         {
             var filename = $"{appName}.json";
-            return Path.Combine(GetAppDataFolder(), filename);
+            return Path.Combine(GetAppDataFolder(), filename);        
         }
 
     }
