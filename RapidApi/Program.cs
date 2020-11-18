@@ -218,6 +218,7 @@ namespace RapidApi
             {
                 Console.WriteLine($"Deleting {appName} and related resources...");
                 await remoteManager.Delete(project);
+                DeleteProjectData(appName);
                 Console.WriteLine($"The app {appName} and its related resources have been delete.");
             }
             catch (Exception ex)
@@ -265,18 +266,27 @@ namespace RapidApi
         static void SaveProjectData(RemoteProject project)
         {
             var json = JsonSerializer.Serialize(project);
-            var dir = GetAppDataFolder();
-            var filename = $"{project.AppId}.json";
-            var fullPath = Path.Combine(dir, filename);
+            var fullPath = GetAppJsonPath(project.AppId);
             File.WriteAllText(fullPath, json);
         }
 
         static RemoteProject LoadProject(string appName)
         {
-            var filename = $"{appName}.json";
-            var fullPath = Path.Combine(GetAppDataFolder(), filename);
+            var fullPath = GetAppJsonPath(appName);
             var project = JsonSerializer.Deserialize<RemoteProject>(File.ReadAllText(fullPath));
             return project;
+        }
+
+        static void DeleteProjectData(string appName)
+        {
+            var fullPath = GetAppJsonPath(appName);
+            File.Delete(fullPath);
+        }
+
+        static string GetAppJsonPath(string appName)
+        {
+            var filename = $"{appName}.json";
+            return Path.Combine(GetAppDataFolder(), filename);
         }
 
     }
