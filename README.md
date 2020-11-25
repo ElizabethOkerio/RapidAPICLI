@@ -13,7 +13,8 @@ dotnet run --project RapidApi\RapidApi.csproj run --schema "C:\Users\UserName\so
 ```
 ```cmd
 To deploy the project to azure run the following command 
-dotnet run --project RapidApi\RapidApi.csproj deploy --schema "C:\Users\UserName\source\repos\schema.xml" --app "MyOdataService" --tanantId "TENANTID" --subscriptionId "SUBSCRIPTIONID"
+dotnet run --project RapidApi\RapidApi.csproj deploy --schema "C:\Users\UserName\source\repos\schema.xml" --app "MyOdataService" 
+--tanantId "TENANTID" --subscriptionId "SUBSCRIPTIONID"
 The subscription ID is optional. 
 ```
 
