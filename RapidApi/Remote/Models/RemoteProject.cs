@@ -17,6 +17,8 @@ namespace RapidApi.Remote.Models
         public string StorageAccountKey { get; set; }
         public string AzureFileShare { get; set; }
 
+        public bool SeedData { get; set; }
+
         public string StorageConnectionString
         {
             get => $"DefaultEndpointsProtocol=https;AccountName={StorageAccountName};AccountKey={StorageAccountKey}";

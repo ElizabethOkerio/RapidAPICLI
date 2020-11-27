@@ -51,10 +51,11 @@ namespace RapidApi.Remote
         /// <param name="appId"></param>
         /// <param name="schema"></param>
         /// <returns></returns>
-        public async Task<RemoteDeployment> Create(string appId, string schemaPath)
+        public async Task<RemoteDeployment> Create(string appId, string schemaPath, ProjectRunArgs projectRunArgs)
         {
             var project = new RemoteProject();
             project.AppId = appId;
+            project.SeedData = projectRunArgs.SeedData;
 
             var deployment = new RemoteDeployment();
             deployment.Project = project;

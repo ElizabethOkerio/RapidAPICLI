@@ -41,11 +41,12 @@ namespace RapidApi
 
                 var schemaOption = command.Option("-s|--schema <SCHEMA>", "The path to the xml schema file.", CommandOptionType.SingleValue);
                 var portOption = command.Option("-p|--port <PORT>", "The port to bind the local server to.", CommandOptionType.SingleValue);
+                var seedOption = command.Option("-d|--seed", "Whether to seed the database with random data", CommandOptionType.NoValue);
 
                 command.OnExecute(() =>
                 {
 
-                    DeployLocally(new FileInfo(schemaOption.Value()), portOption.Value());
+                    DeployLocally(new FileInfo(schemaOption.Value()), portOption.Value(), seedOption.HasValue());
 
                     return Task.FromResult(0); //return 0 on a successful execution
                 });
@@ -61,11 +62,12 @@ namespace RapidApi
 
                 var schemaOption = command.Option("-s|--schema <SCHEMA>", "The path to the xml schema file.", CommandOptionType.SingleValue);
                 var appNameOption = command.Option("-a|--app <APPSERVICENAME>", "The name of the app service to create.", CommandOptionType.SingleValue);
+                var seedOption = command.Option("-d|--seed", "Whether to seed the database with random data", CommandOptionType.NoValue);
 
                 command.OnExecute(async () =>
                 {
 
-                   await DeployRemotely(new FileInfo(schemaOption.Value()), appNameOption.Value());
+                   await DeployRemotely(new FileInfo(schemaOption.Value()), appNameOption.Value(), seedOption.HasValue());
         
                     return 0; //return 0 on a successful execution
                 });
@@ -128,7 +130,7 @@ namespace RapidApi
             }
         }
 
-        static async Task DeployRemotely(FileInfo csdl, string appServiceName)
+        static async Task DeployRemotely(FileInfo csdl, string appServiceName, bool seedData)
         {
             if (appServiceName == null)
             {
@@ -152,7 +154,11 @@ namespace RapidApi
             try
             {
                 Console.WriteLine("Deploying resources, please wait...");
-                var deployment = await remoteManager.Create(AppId, csdl.FullName);
+                var args = new ProjectRunArgs()
+                {
+                    SeedData = seedData
+                };
+                var deployment = await remoteManager.Create(AppId, csdl.FullName, args);
                 var project = deployment.Project;
 
                 SaveProjectData(project);
@@ -228,7 +234,7 @@ namespace RapidApi
 
         }
 
-        static void DeployLocally(FileInfo csdl, string portString = null)
+        static void DeployLocally(FileInfo csdl, string portString, bool seedData)
         {
             if (csdl != null)
             {
@@ -244,7 +250,12 @@ namespace RapidApi
 
             string Schema = File.ReadAllText(csdl.FullName);
 
-            using (var serverRunner = new LocalRunner(csdl.FullName, port))
+            var args = new ProjectRunArgs()
+            {
+                SeedData = seedData
+            };
+
+            using (var serverRunner = new LocalRunner(csdl.FullName, port, args))
             {
                 serverRunner.BeforeRestart = (path, port) => Console.WriteLine($"Changes detected to {csdl.FullName}, restarting server...");
                 serverRunner.AfterRestart = (path, port) => Console.WriteLine($"Server running on http://localhost:{port}/odata");

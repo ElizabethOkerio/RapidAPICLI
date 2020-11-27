@@ -72,6 +72,11 @@ namespace RapidApi.Remote
                                             },
                                             new ContainerDeploymentTemplate.ContainerEnvironmentVariableModel()
                                             {
+                                                Name = "SEED_DATA",
+                                                Value = project.SeedData ? "true" : "false"
+                                            },
+                                            new ContainerDeploymentTemplate.ContainerEnvironmentVariableModel()
+                                            {
                                                 Name = "AZURE_FILE_SHARE_NAME",
                                                 Value = project.AzureFileShare
                                             },
