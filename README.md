@@ -5,11 +5,19 @@ The cli creates a fully functional project that you can deploy on azure to test 
 
 ## How to run.
 
-Clone the project and run the following command.
+Clone the project and run the following commands.
 
 ```cmd
-dotnet run --project RapidApi\RapidApi.csproj --schema "C:\Users\UserName\source\repos\schema.xml" --app "MyOdataService"
+To run the project locally use the following command: 
+dotnet run --project RapidApi\RapidApi.csproj run --schema "C:\Users\UserName\source\repos\schema.xml"
 ```
+```cmd
+To deploy the project to azure run the following command 
+dotnet run --project RapidApi\RapidApi.csproj deploy --schema "C:\Users\UserName\source\repos\schema.xml" --app "MyOdataService" 
+--tanantId "TENANTID" --subscriptionId "SUBSCRIPTIONID"
+The subscription ID is optional. 
+```
+
 
 Upon successful deployment the application gives out a url for the service id.
 
