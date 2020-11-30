@@ -10,6 +10,7 @@ namespace RapidApi.Remote.Models
         
         public string AppServicePlanId { get; set; }
         public string SubScriptionId { get; set; }
+        public string TenantId { get; set; }
         public string Region { get; set; }
         public string ResourceGroup { get; set; }
 

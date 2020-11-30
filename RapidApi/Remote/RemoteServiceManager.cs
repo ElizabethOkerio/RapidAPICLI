@@ -82,6 +82,8 @@ namespace RapidApi.Remote
         {
             var project = new RemoteProject();
             project.AppId = appId;
+            project.SubScriptionId = azure.SubscriptionId;
+            project.TenantId = _tenantId;
             project.SeedData = projectRunArgs.SeedData;
 
             var deployment = new RemoteDeployment();
@@ -96,7 +98,6 @@ namespace RapidApi.Remote
             project.ResourceGroup = rgName;
             project.StorageAccountName = storageAccountName;
             project.AzureFileShare = shareName;
-           
 
 
             var region = Region.USCentral;

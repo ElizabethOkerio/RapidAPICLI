@@ -92,7 +92,7 @@ namespace RapidApi.Local
                 if (disposing)
                 {
                     // TODO: dispose managed state (managed objects)
-                    Console.WriteLine("Removing container");
+                    Console.WriteLine("Terminating service");
                     container?.Stop();
                     container?.Remove();
                     container?.Dispose();
