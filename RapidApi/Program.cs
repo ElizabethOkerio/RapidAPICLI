@@ -13,8 +13,6 @@ namespace RapidApi
 {
     class Program
     {
-        static string TenantId = "TENANT ID";
-        static string SubscriptionId = "SUBSCRIPTION ID";
 
         static void Main(string[] args)
         {
@@ -61,15 +59,12 @@ namespace RapidApi
 
                 var schemaOption = command.Option("-s|--schema <SCHEMA>", "The path to the xml schema file.", CommandOptionType.SingleValue);
                 var appNameOption = command.Option("-a|--app <APPSERVICENAME>", "The name of the app service to create.", CommandOptionType.SingleValue);
-                var tenantIdOption = command.Option("-r|--tenantId <TENANTID>", "The tenant ID to deploy to", CommandOptionType.SingleValue);
-                var subscriptionIdOption = command.Option("-i|--subscriptionId <SUBSCRIPTIONID>", "The subscription Id to use. It is optional though", CommandOptionType.MultipleValue);
+                var tenantIdOption = command.Option("-t|--tenant <TENANTID>", "The tenant ID to deploy to", CommandOptionType.SingleValue);
+                var subscriptionIdOption = command.Option("-i|--subscription <SUBSCRIPTIONID>", "The subscription Id to use.", CommandOptionType.SingleValue);
                 var seedOption = command.Option("-d|--seed", "Whether to seed the database with random data", CommandOptionType.NoValue);
 
                 command.OnExecute(async () =>
                 {
-                    TenantId = tenantIdOption.Value();
-                    SubscriptionId = subscriptionIdOption.Value();
-                    //await RunCommand(new FileInfo(schemaOption.Value()),appNameOption.Value(),bool.Parse(remoteOption.Value()));
                     await DeployRemotely(new FileInfo(schemaOption.Value()), appNameOption.Value(), tenantIdOption.Value(), subscriptionIdOption.Value(), seedOption.HasValue());
                     return 0; //return 0 on a successful execution
                 });
@@ -86,10 +81,12 @@ namespace RapidApi
 
                 var schemaOption = command.Option("-s|--schema <SCHEMA>", "The path to the xml schema file.", CommandOptionType.SingleValue);
                 var appNameOption = command.Option("-a|--app <APPSERVICENAME>", "The name of the app service to create.", CommandOptionType.SingleValue);
-
+                var tenantIdOption = command.Option("-t|--tenant <TENANTID>", "The tenant ID to deploy to", CommandOptionType.SingleValue);
+                var subscriptionIdOption = command.Option("-i|--subscription <SUBSCRIPTIONID>", "The subscription Id to use.", CommandOptionType.SingleValue);
+                
                 command.OnExecute(async () =>
                 {
-                    await UpdateRemoteService(new FileInfo(schemaOption.Value()), appNameOption.Value());
+                    await UpdateRemoteService(new FileInfo(schemaOption.Value()), appNameOption.Value(), tenantIdOption.Value(), subscriptionIdOption.Value());
                     return 0; //return 0 on a successful execution
                 });
 
@@ -104,11 +101,13 @@ namespace RapidApi
                 command.HelpOption("-?|-h|--help");
 
                 var appNameOption = command.Option("-a|--app <appName>", "The name of the app to delete.", CommandOptionType.SingleValue);
+                var tenantOption = command.Option("-t|--tenant <TENANTID>", "The tenant ID to deploy to", CommandOptionType.SingleValue);
+                var subscriptionOption = command.Option("-i|--subscription <SUBSCRIPTIONID>", "The subscription Id to use.", CommandOptionType.SingleValue);
+
 
                 command.OnExecute(async () =>
                 {
-                    
-                    await DeleteRemoteService(appNameOption.Value());
+                    await DeleteRemoteService(appNameOption.Value(), tenantOption.Value(), subscriptionOption.Value());
                     return 0;
                 });
 
@@ -182,7 +181,7 @@ namespace RapidApi
            
         }
 
-        static async Task UpdateRemoteService(FileInfo csdl, string appServiceName)
+        static async Task UpdateRemoteService(FileInfo csdl, string appServiceName, string tenantId, string subscriptionId)
         {
             if (appServiceName == null)
             {
@@ -200,7 +199,7 @@ namespace RapidApi
             {
                 var project = LoadProject(appServiceName);
                 Console.WriteLine("Updating app, please wait...");
-                var remoteManager = new RemoteServiceManager(TenantId, SubscriptionId);
+                var remoteManager = new RemoteServiceManager(tenantId, subscriptionId);
                 await remoteManager.UpdateSchema(project, csdl.FullName);
                 Console.WriteLine($"Update complete. App url is {project.AppUrl}");
             }
@@ -213,7 +212,7 @@ namespace RapidApi
             
         }
 
-        static async Task DeleteRemoteService(string appName)
+        static async Task DeleteRemoteService(string appName, string tenantId, string subscriptionId)
         {
             if (appName == null)
             {
@@ -227,7 +226,7 @@ namespace RapidApi
             project.ResourceGroup = $"rg{appName}";
 
             
-            var remoteManager = new RemoteServiceManager(TenantId, SubscriptionId);
+            var remoteManager = new RemoteServiceManager(tenantId, subscriptionId);
 
             try
             {

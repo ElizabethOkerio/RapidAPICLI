@@ -19,6 +19,7 @@ namespace RapidApi.Local
 
         public ProjectRunArgs ProjectRunArgs { get; set; }
 
+
         public LocalRunner(string schemaPath, int port, ProjectRunArgs args)
         {
             Port = port;
@@ -41,6 +42,7 @@ namespace RapidApi.Local
 
         public void Stop()
         {
+            stopped = true;
             Dispose();
         }
 
@@ -54,6 +56,7 @@ namespace RapidApi.Local
                 .UseImage("rapidapiregistry.azurecr.io/rapidapimockserv:latest")
                 .WithCredential("rapidapiregistry.azurecr.io", "rapidapiregistry", "lfd34HcYycIg+rttO0D5AeZjZL2=pqZt")
                 .ExposePort(Port, 80)
+                .KeepRunning()
                 .CopyOnStart(SchemaPath, "/app/Project.csdl");
 
             if (ProjectRunArgs.SeedData)
@@ -62,10 +65,17 @@ namespace RapidApi.Local
             }
 
             container = builder
-                .Build()
-                .Start();
+                .Build();
+            container.StateChange += OnStateChange;
             container.StopOnDispose = true;
             container.RemoveOnDispose = true;
+            container.Start();
+            
+        }
+
+        private void OnStateChange(object sender, StateChangeEventArgs evt)
+        {
+            Console.WriteLine("Service {0} state changed to {1}", evt.Service, evt.State);
         }
 
         private void OnSchemaChange(object source, FileSystemEventArgs e)
