@@ -42,7 +42,6 @@ namespace RapidApi.Local
 
         public void Stop()
         {
-            stopped = true;
             Dispose();
         }
 
@@ -66,16 +65,11 @@ namespace RapidApi.Local
 
             container = builder
                 .Build();
-            container.StateChange += OnStateChange;
+
             container.StopOnDispose = true;
             container.RemoveOnDispose = true;
             container.Start();
             
-        }
-
-        private void OnStateChange(object sender, StateChangeEventArgs evt)
-        {
-            Console.WriteLine("Service {0} state changed to {1}", evt.Service, evt.State);
         }
 
         private void OnSchemaChange(object source, FileSystemEventArgs e)

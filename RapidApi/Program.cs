@@ -265,10 +265,18 @@ namespace RapidApi
 
             using (var serverRunner = new LocalRunner(csdl.FullName, port, args))
             {
+                Console.CancelKeyPress += (sender, args) =>
+                {
+                    // dispose server if terminated with Ctrl+C
+                    serverRunner.Stop();
+                    Environment.Exit(0);
+                };
+
                 serverRunner.BeforeRestart = (path, port) => Console.WriteLine($"Changes detected to {csdl.FullName}, restarting server...");
                 serverRunner.AfterRestart = (path, port) => Console.WriteLine($"Server running on http://localhost:{port}/odata");
                 serverRunner.Start();
                 Console.WriteLine($"Server running on http://localhost:{port}/odata");
+                Console.WriteLine("Press any key to exit.");
                 Console.ReadKey();
             }
 
