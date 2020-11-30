@@ -177,6 +177,9 @@ namespace RapidApi
                 SeedData = seedData
             };
 
+            var updater = new ServiceUpdater();
+            updater.UpdateService();
+
             using (var serverRunner = new LocalRunner(csdl.FullName, port, args))
             {
                 Console.CancelKeyPress += (sender, args) =>

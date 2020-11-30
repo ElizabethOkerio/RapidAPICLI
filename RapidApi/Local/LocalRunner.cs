@@ -53,7 +53,7 @@ namespace RapidApi.Local
             var builder = new Builder()
                 .UseContainer()
                 .UseImage("rapidapiregistry.azurecr.io/rapidapimockserv:latest")
-                .WithCredential("rapidapiregistry.azurecr.io", "rapidapiregistry", "lfd34HcYycIg+rttO0D5AeZjZL2=pqZt")
+                .WithCredential("rapidapiregistry.azurecr.io", "rapidapiregistry", "3RSdU=zGg=AIvjesICqISXdBbMiwYigk")
                 .ExposePort(Port, 80)
                 .KeepRunning()
                 .CopyOnStart(SchemaPath, "/app/Project.csdl");
