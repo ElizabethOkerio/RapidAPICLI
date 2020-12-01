@@ -91,17 +91,21 @@ namespace RapidApi
                 Environment.Exit(1);
             }
 
-            tenantId = tenantId ?? config.Tenant;
-            subscriptionId = subscriptionId ?? config.Subscription;
-
-            if (string.IsNullOrEmpty(tenantId))
-            {
-                Console.Error.WriteLine("Please provide value for tenant");
-            }
+            
 
             try
             {
                 var project = configManager.LoadProject(appServiceName);
+
+                tenantId = tenantId ?? project.TenantId ?? config.Tenant;
+                subscriptionId = subscriptionId ?? project.SubScriptionId ?? config.Subscription;
+
+                if (string.IsNullOrEmpty(tenantId))
+                {
+                    throw new Exception("Please provide value for tenant");
+                }
+
+
                 Console.WriteLine("Updating app, please wait...");
                 var remoteManager = new RemoteServiceManager(tenantId, subscriptionId);
                 await remoteManager.UpdateSchema(project, csdl.FullName);
@@ -126,24 +130,20 @@ namespace RapidApi
 
             var config = configManager.GetRootConfig();
 
-            tenantId = tenantId ?? config.Tenant;
-            subscriptionId = subscriptionId ?? config.Subscription;
-
-            if (string.IsNullOrEmpty(tenantId))
-            {
-                Console.Error.WriteLine("Please provide value for tenant");
-            }
-
-            var project = new RemoteProject();
-            project.AppId = appName;
-            project.Region = Region.USCentral.Name;
-            project.ResourceGroup = $"rg{appName}";
-
-
-            var remoteManager = new RemoteServiceManager(tenantId, subscriptionId);
-
             try
             {
+                var project = configManager.LoadProject(appName);
+
+                tenantId = tenantId ?? project.TenantId ?? config.Tenant;
+                subscriptionId = subscriptionId ?? project.SubScriptionId ?? config.Subscription;
+
+                if (string.IsNullOrEmpty(tenantId))
+                {
+                    throw new Exception("Please provide value for tenant");
+                }
+
+                var remoteManager = new RemoteServiceManager(tenantId, subscriptionId);
+
                 Console.WriteLine($"Deleting {appName} and related resources...");
                 await remoteManager.Delete(project);
                 configManager.DeleteProjectData(appName);
