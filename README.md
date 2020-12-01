@@ -24,24 +24,19 @@ Log in to your Azure account portal
 - Select the subscription you want to use
 - In the Overview section, find the **Subscription ID** field and copy its value.
 - You can use the `rapidapi config --subscription subscription-id` command to save this
-Subscription ID for later use with RapidAPI
+Subscription ID for later use with RapidApi
 
-## How to build
+## How to install
 
-Clone this repository and navigate to the directory where it was deployed.
-
-Build the solution using:
 ```
-dotnet build -c Release
+dotnet tool install RapidApi.Cli --version 1.0.0-alpha
 ```
 
-The built binaries will be stored in
-```
-RapidApi\bin\Release\netcoreapp3.1
-```
+Or to insall globally
 
-Copy the contents of that folder to the location where you prefer to be
-running the app from.
+```
+dotnet tool install --global RapidApi.Cli --version 1.0.0-alpha
+```
 
 ## How to run.
 
