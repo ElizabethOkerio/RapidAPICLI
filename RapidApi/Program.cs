@@ -1,13 +1,8 @@
 ﻿using System;
 using System.IO;
 using System.Threading.Tasks;
-using RapidApi.Remote;
-using RapidApi.Local;
 using Microsoft.Extensions.CommandLineUtils;
 using System.Reflection;
-using RapidApi.Remote.Models;
-using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
-using System.Text.Json;
 
 namespace RapidApi
 {
@@ -40,11 +35,11 @@ namespace RapidApi
                 command.HelpOption("-?|-h|--help");
 
                 var tenantOption = command.Option(
-                    "-t|--tenant <TENANT>", "The default azure tenant id to use for remote services",
+                    "-t|--tenant <TENANT>", "The default Azure tenant id to use for remote services",
                     CommandOptionType.SingleValue);
 
                 var subscriptionOption = command.Option(
-                    "-i|--subscription <SUBSCRIPTION>", "The default azure subscription to use for remote services",
+                    "-i|--subscription <SUBSCRIPTION>", "The default Azure subscription to use for remote services",
                     CommandOptionType.SingleValue);
 
                 command.OnExecute(() =>
@@ -57,7 +52,7 @@ namespace RapidApi
             app.Command("run", (command) =>
             {
                 //description and help text of the command.
-                command.Description = "This command will deploy a project either localy or to the server when called.";
+                command.Description = "Launches a mock service locally based on specified schema.";
                 command.HelpOption("-?|-h|--help");
 
                 var schemaOption = command.Option("-s|--schema <SCHEMA>", "The path to the xml schema file.", CommandOptionType.SingleValue);
@@ -78,13 +73,13 @@ namespace RapidApi
             app.Command("deploy", (command) =>
             {
                 //description and help text of the command.
-                command.Description = "This command will deploy a project either localy or to the server when called.";
+                command.Description = "Creates and deploys a new service remotely to Azure based on provided schema.";
                 command.HelpOption("-?|-h|--help");
 
                 var schemaOption = command.Option("-s|--schema <SCHEMA>", "The path to the xml schema file.", CommandOptionType.SingleValue);
-                var appNameOption = command.Option("-a|--app <APPSERVICENAME>", "The name of the app service to create.", CommandOptionType.SingleValue);
-                var tenantIdOption = command.Option("-t|--tenant <TENANTID>", "The tenant ID to deploy to", CommandOptionType.SingleValue);
-                var subscriptionIdOption = command.Option("-i|--subscription <SUBSCRIPTIONID>", "The subscription Id to use.", CommandOptionType.SingleValue);
+                var appNameOption = command.Option("-a|--app <APPNAME>", "The unique name of the app to create.", CommandOptionType.SingleValue);
+                var tenantIdOption = command.Option("-t|--tenant <TENANTID>", "The Azure tenant ID to deploy to", CommandOptionType.SingleValue);
+                var subscriptionIdOption = command.Option("-i|--subscription <SUBSCRIPTIONID>", "The Azure subscription Id to use.", CommandOptionType.SingleValue);
                 var seedOption = command.Option("-d|--seed", "Whether to seed the database with random data", CommandOptionType.NoValue);
 
                 command.OnExecute(async () =>
@@ -99,14 +94,14 @@ namespace RapidApi
             app.Command("update", (command) =>
             {
                 //description and help text of the command.
-                command.Description = "This is the update command.";
+                command.Description = "Updates a remote service with a new schema.";
                 command.ExtendedHelpText = "This is the extended help text for simple-command.";
                 command.HelpOption("-?|-h|--help");
 
                 var schemaOption = command.Option("-s|--schema <SCHEMA>", "The path to the xml schema file.", CommandOptionType.SingleValue);
-                var appNameOption = command.Option("-a|--app <APPSERVICENAME>", "The name of the app service to create.", CommandOptionType.SingleValue);
-                var tenantIdOption = command.Option("-t|--tenant <TENANTID>", "The tenant ID to deploy to", CommandOptionType.SingleValue);
-                var subscriptionIdOption = command.Option("-i|--subscription <SUBSCRIPTIONID>", "The subscription Id to use.", CommandOptionType.SingleValue);
+                var appNameOption = command.Option("-a|--app <APPNAME>", "The name of the app to update.", CommandOptionType.SingleValue);
+                var tenantIdOption = command.Option("-t|--tenant <TENANTID>", "The Azure tenant ID to deploy to", CommandOptionType.SingleValue);
+                var subscriptionIdOption = command.Option("-i|--subscription <SUBSCRIPTIONID>", "The Azure subscription Id to use.", CommandOptionType.SingleValue);
                 
                 command.OnExecute(async () =>
                 {
@@ -124,9 +119,9 @@ namespace RapidApi
                 command.ExtendedHelpText = "This is the extended help text for simple-command.";
                 command.HelpOption("-?|-h|--help");
 
-                var appNameOption = command.Option("-a|--app <appName>", "The name of the app to delete.", CommandOptionType.SingleValue);
-                var tenantOption = command.Option("-t|--tenant <TENANTID>", "The tenant ID to deploy to", CommandOptionType.SingleValue);
-                var subscriptionOption = command.Option("-i|--subscription <SUBSCRIPTIONID>", "The subscription Id to use.", CommandOptionType.SingleValue);
+                var appNameOption = command.Option("-a|--app <APP_NAME>", "The name of the app to delete.", CommandOptionType.SingleValue);
+                var tenantOption = command.Option("-t|--tenant <TENANTID>", "The Azure tenant ID the app is deployed to", CommandOptionType.SingleValue);
+                var subscriptionOption = command.Option("-i|--subscription <SUBSCRIPTIONID>", "The Azure subscription Id to use.", CommandOptionType.SingleValue);
 
 
                 command.OnExecute(async () =>
