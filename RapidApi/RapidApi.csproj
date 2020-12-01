@@ -38,18 +38,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="azuredeploy.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="azuredeploy.parameters.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="deploy.ps1">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
-  <ItemGroup>
     <WCFMetadata Include="Connected Services" />
   </ItemGroup>
 

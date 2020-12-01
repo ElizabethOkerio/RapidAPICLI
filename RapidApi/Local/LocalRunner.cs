@@ -17,9 +17,13 @@ namespace RapidApi.Local
         public Action<string, int> BeforeRestart { get; set; }
         public Action<string, int> AfterRestart { get; set; }
 
-        public LocalRunner(string schemaPath, int port)
+        public ProjectRunArgs ProjectRunArgs { get; set; }
+
+
+        public LocalRunner(string schemaPath, int port, ProjectRunArgs args)
         {
             Port = port;
+            ProjectRunArgs = args;
             SchemaPath = schemaPath;
             watcher = new FileSystemWatcher();
 
@@ -45,17 +49,27 @@ namespace RapidApi.Local
         {
             container?.Dispose();
             container = null;
-            
-            container = new Builder()
+
+            var builder = new Builder()
                 .UseContainer()
                 .UseImage("rapidapiregistry.azurecr.io/rapidapimockserv:latest")
-                .WithCredential("rapidapiregistry.azurecr.io", "rapidapiregistry", "lfd34HcYycIg+rttO0D5AeZjZL2=pqZt")
+                .WithCredential("rapidapiregistry.azurecr.io", "rapidapiregistry", "3RSdU=zGg=AIvjesICqISXdBbMiwYigk")
                 .ExposePort(Port, 80)
-                .CopyOnStart(SchemaPath, "/app/Project.csdl")
-                .Build()
-                .Start();
+                .KeepRunning()
+                .CopyOnStart(SchemaPath, "/app/Project.csdl");
+
+            if (ProjectRunArgs.SeedData)
+            {
+                builder.WithEnvironment("SEED_DATA=true");
+            }
+
+            container = builder
+                .Build();
+
             container.StopOnDispose = true;
             container.RemoveOnDispose = true;
+            container.Start();
+            
         }
 
         private void OnSchemaChange(object source, FileSystemEventArgs e)
@@ -78,7 +92,7 @@ namespace RapidApi.Local
                 if (disposing)
                 {
                     // TODO: dispose managed state (managed objects)
-                    Console.WriteLine("Removing container");
+                    Console.WriteLine("Terminating service");
                     container?.Stop();
                     container?.Remove();
                     container?.Dispose();

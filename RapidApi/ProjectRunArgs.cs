@@ -4,9 +4,8 @@ using System.Text;
 
 namespace RapidApi
 {
-    public class Project
+    public class ProjectRunArgs
     {
-        public int Id { get; set; }
-        public string AppUrl { get; set; }
+        public bool SeedData { get; set; }
     }
 }

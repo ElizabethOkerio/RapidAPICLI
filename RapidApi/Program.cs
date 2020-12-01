@@ -1,23 +1,20 @@
 ﻿using System;
 using System.IO;
 using System.Threading.Tasks;
-using RapidApi.Remote;
-using RapidApi.Local;
 using Microsoft.Extensions.CommandLineUtils;
 using System.Reflection;
-using RapidApi.Remote.Models;
-using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
-using System.Text.Json;
 
 namespace RapidApi
 {
     class Program
     {
-        static string TenantId = "TENANT ID";
-        static string SubscriptionId = "SUBSCRIPTION ID";
 
         static void Main(string[] args)
         {
+
+            var configManager = new ConfigManager();
+            var runner = new CommandRunner(configManager);
+
             var app = new CommandLineApplication();
 
             app.Name = "RapidApi";
@@ -32,19 +29,40 @@ namespace RapidApi
                 return string.Format("Version {0}", Assembly.GetEntryAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion);
             });
 
+            app.Command("config", (command) =>
+            {
+                command.Description = "Sets global configuration settings";
+                command.HelpOption("-?|-h|--help");
+
+                var tenantOption = command.Option(
+                    "-t|--tenant <TENANT>", "The default Azure tenant id to use for remote services",
+                    CommandOptionType.SingleValue);
+
+                var subscriptionOption = command.Option(
+                    "-i|--subscription <SUBSCRIPTION>", "The default Azure subscription to use for remote services",
+                    CommandOptionType.SingleValue);
+
+                command.OnExecute(() =>
+                {
+                    runner.SetConfig(tenant: tenantOption.Value(), subscription: subscriptionOption.Value());
+                    return Task.FromResult(0);
+                });
+            });
+
             app.Command("run", (command) =>
             {
                 //description and help text of the command.
-                command.Description = "This command will deploy a project either localy or to the server when called.";
+                command.Description = "Launches a mock service locally based on specified schema.";
                 command.HelpOption("-?|-h|--help");
 
                 var schemaOption = command.Option("-s|--schema <SCHEMA>", "The path to the xml schema file.", CommandOptionType.SingleValue);
                 var portOption = command.Option("-p|--port <PORT>", "The port to bind the local server to.", CommandOptionType.SingleValue);
+                var seedOption = command.Option("-d|--seed", "Whether to seed the database with random data", CommandOptionType.NoValue);
 
                 command.OnExecute(() =>
                 {
 
-                    DeployLocally(new FileInfo(schemaOption.Value()), portOption.Value());
+                    runner.DeployLocally(new FileInfo(schemaOption.Value()), portOption.Value(), seedOption.HasValue());
 
                     return Task.FromResult(0); //return 0 on a successful execution
                 });
@@ -55,19 +73,18 @@ namespace RapidApi
             app.Command("deploy", (command) =>
             {
                 //description and help text of the command.
-                command.Description = "This command will deploy a project either localy or to the server when called.";
+                command.Description = "Creates and deploys a new service remotely to Azure based on provided schema.";
                 command.HelpOption("-?|-h|--help");
 
                 var schemaOption = command.Option("-s|--schema <SCHEMA>", "The path to the xml schema file.", CommandOptionType.SingleValue);
-                var appNameOption = command.Option("-a|--app <APPSERVICENAME>", "The name of the app service to create.", CommandOptionType.SingleValue);
-                var tenantIdOption = command.Option("-r|--tenantId <TENANTID>", "The tenant ID to deploy to", CommandOptionType.SingleValue);
-                var subscriptionIdOption = command.Option("-i|--subscriptionId <SUBSCRIPTIONID>", "The subscription Id to use. It is optional though", CommandOptionType.MultipleValue);
+                var appNameOption = command.Option("-a|--app <APPNAME>", "The unique name of the app to create.", CommandOptionType.SingleValue);
+                var tenantIdOption = command.Option("-t|--tenant <TENANTID>", "The Azure tenant ID to deploy to", CommandOptionType.SingleValue);
+                var subscriptionIdOption = command.Option("-i|--subscription <SUBSCRIPTIONID>", "The Azure subscription Id to use.", CommandOptionType.SingleValue);
+                var seedOption = command.Option("-d|--seed", "Whether to seed the database with random data", CommandOptionType.NoValue);
+
                 command.OnExecute(async () =>
                 {
-                    TenantId = tenantIdOption.Value();
-                    SubscriptionId = subscriptionIdOption.Value();
-                    //await RunCommand(new FileInfo(schemaOption.Value()),appNameOption.Value(),bool.Parse(remoteOption.Value()));
-                    await DeployRemotely(new FileInfo(schemaOption.Value()), appNameOption.Value(), tenantIdOption.Value(), subscriptionIdOption.Value());
+                    await runner.DeployRemotely(new FileInfo(schemaOption.Value()), appNameOption.Value(), tenantIdOption.Value(), subscriptionIdOption.Value(), seedOption.HasValue());
                     return 0; //return 0 on a successful execution
                 });
 
@@ -77,16 +94,18 @@ namespace RapidApi
             app.Command("update", (command) =>
             {
                 //description and help text of the command.
-                command.Description = "This is the update command.";
+                command.Description = "Updates a remote service with a new schema.";
                 command.ExtendedHelpText = "This is the extended help text for simple-command.";
                 command.HelpOption("-?|-h|--help");
 
                 var schemaOption = command.Option("-s|--schema <SCHEMA>", "The path to the xml schema file.", CommandOptionType.SingleValue);
-                var appNameOption = command.Option("-a|--app <APPSERVICENAME>", "The name of the app service to create.", CommandOptionType.SingleValue);
-
+                var appNameOption = command.Option("-a|--app <APPNAME>", "The name of the app to update.", CommandOptionType.SingleValue);
+                var tenantIdOption = command.Option("-t|--tenant <TENANTID>", "The Azure tenant ID to deploy to", CommandOptionType.SingleValue);
+                var subscriptionIdOption = command.Option("-i|--subscription <SUBSCRIPTIONID>", "The Azure subscription Id to use.", CommandOptionType.SingleValue);
+                
                 command.OnExecute(async () =>
                 {
-                    await UpdateRemoteService(new FileInfo(schemaOption.Value()), appNameOption.Value());
+                    await runner.UpdateRemoteService(new FileInfo(schemaOption.Value()), appNameOption.Value(), tenantIdOption.Value(), subscriptionIdOption.Value());
                     return 0; //return 0 on a successful execution
                 });
 
@@ -100,15 +119,29 @@ namespace RapidApi
                 command.ExtendedHelpText = "This is the extended help text for simple-command.";
                 command.HelpOption("-?|-h|--help");
 
-                var appNameOption = command.Option("-a|--app <appName>", "The name of the app to delete.", CommandOptionType.SingleValue);
+                var appNameOption = command.Option("-a|--app <APP_NAME>", "The name of the app to delete.", CommandOptionType.SingleValue);
+                var tenantOption = command.Option("-t|--tenant <TENANTID>", "The Azure tenant ID the app is deployed to", CommandOptionType.SingleValue);
+                var subscriptionOption = command.Option("-i|--subscription <SUBSCRIPTIONID>", "The Azure subscription Id to use.", CommandOptionType.SingleValue);
+
 
                 command.OnExecute(async () =>
                 {
-                    
-                    await DeleteRemoteService(appNameOption.Value());
+                    await runner.DeleteRemoteService(appNameOption.Value(), tenantOption.Value(), subscriptionOption.Value());
                     return 0;
                 });
 
+            });
+
+            app.Command("list", (command) =>
+            {
+                command.Description = "Lists remotely deployed services";
+                command.HelpOption("-?|-h|--help");
+
+                command.OnExecute(() =>
+                {
+                    runner.ListRemoteProjects();
+                    return 0;
+                });
             });
 
             try
@@ -127,185 +160,6 @@ namespace RapidApi
             {
                 Console.WriteLine("Unable to execute application: {0}", ex.Message);
             }
-        }
-        static async Task RunCommand(FileInfo csdl, string appServiceName, bool remote)
-        {
-            if (remote)
-            {
-                //await DeployRemotely(csdl, appServiceName);
-            }
-            else
-            {
-                DeployLocally(csdl);
-            }
-        }
-
-        static async Task DeployRemotely(FileInfo csdl, string appServiceName, string tenantId, string subscriptionId)
-        {
-            if (appServiceName == null)
-            {
-                Console.Error.WriteLine("Please specify unique app name for remote deployment");
-                Environment.Exit(1);
-            }
-
-            if (csdl == null)
-            {
-                Console.Error.WriteLine("Please specify the schema file for your project");
-                Environment.Exit(1);
-            }
-
-            if (tenantId == null)
-            {
-                Console.Error.WriteLine("Please specify your azure tenant Id");
-                Environment.Exit(1);
-            }
-
-            Console.WriteLine($"Schema Path: {csdl.FullName}");
-            Console.WriteLine($"App service name: {appServiceName}");
-            Console.WriteLine($"Tenant Id: {tenantId}");
-
-            string AppId = appServiceName;
-            //string SubscriptionId = "e8a5d058-e1b5-48f4-b1ff-b3bc830fb899";
-
-            var remoteManager = new RemoteServiceManager(tenantId, subscriptionId);
-            try
-            {
-                Console.WriteLine("Deploying resources, please wait...");
-                var deployment = await remoteManager.Create(AppId, csdl.FullName);
-                var project = deployment.Project;
-
-                SaveProjectData(project);
-                Console.WriteLine($"App created successfully. Your app URL is: {project.AppUrl}");
-
-                
-            }
-            catch (Exception ex)
-            {
-                Console.Error.WriteLine(ex.Message);
-            }
-           
-        }
-
-        static async Task UpdateRemoteService(FileInfo csdl, string appServiceName)
-        {
-            if (appServiceName == null)
-            {
-                Console.Error.WriteLine("Please specify the app to update");
-                Environment.Exit(1);
-            }
-
-            if (csdl == null)
-            {
-                Console.Error.WriteLine("Please specify the schema file for your project");
-                Environment.Exit(1);
-            }
-
-            try
-            {
-                var project = LoadProject(appServiceName);
-                Console.WriteLine("Updating app, please wait...");
-                var remoteManager = new RemoteServiceManager(TenantId, SubscriptionId);
-                await remoteManager.UpdateSchema(project, csdl.FullName);
-                Console.WriteLine($"Update complete. App url is {project.AppUrl}");
-            }
-            catch (Exception e)
-            {
-                Console.Error.WriteLine(e.Message);
-            }
-
-
-            
-        }
-
-        static async Task DeleteRemoteService(string appName)
-        {
-            if (appName == null)
-            {
-                Console.Error.WriteLine("Please specify the app to delete");
-                Environment.Exit(1);
-            }
-
-            var project = new RemoteProject();
-            project.AppId = appName;
-            project.Region = Region.USCentral.Name;
-            project.ResourceGroup = $"rg{appName}";
-
-            
-            var remoteManager = new RemoteServiceManager(TenantId, SubscriptionId);
-
-            try
-            {
-                Console.WriteLine($"Deleting {appName} and related resources...");
-                await remoteManager.Delete(project);
-                DeleteProjectData(appName);
-                Console.WriteLine($"The app {appName} and its related resources have been delete.");
-            }
-            catch (Exception ex)
-            {
-                Console.Error.WriteLine(ex.Message);
-            }
-
-        }
-
-        static void DeployLocally(FileInfo csdl, string portString = null)
-        {
-            if (csdl != null)
-            {
-                Console.WriteLine($"Schema Path: {csdl.FullName}");
-            }
-
-            Random r = new Random();
-            int port = r.Next(4000, 9000);
-            if (!string.IsNullOrEmpty(portString))
-            {
-                port = int.Parse(portString);
-            }
-
-            string Schema = File.ReadAllText(csdl.FullName);
-
-            using (var serverRunner = new LocalRunner(csdl.FullName, port))
-            {
-                serverRunner.BeforeRestart = (path, port) => Console.WriteLine($"Changes detected to {csdl.FullName}, restarting server...");
-                serverRunner.AfterRestart = (path, port) => Console.WriteLine($"Server running on http://localhost:{port}/odata");
-                serverRunner.Start();
-                Console.WriteLine($"Server running on http://localhost:{port}/odata");
-                Console.ReadKey();
-            }
-
-        }
-
-        static string GetAppDataFolder()
-        {
-            var path = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            path = Path.Combine(path, "rapidapi");
-            Directory.CreateDirectory(path);
-            return path;
-        }
-
-        static void SaveProjectData(RemoteProject project)
-        {
-            var json = JsonSerializer.Serialize(project);
-            var fullPath = GetAppJsonPath(project.AppId);
-            File.WriteAllText(fullPath, json);
-        }
-
-        static RemoteProject LoadProject(string appName)
-        {
-            var fullPath = GetAppJsonPath(appName);
-            var project = JsonSerializer.Deserialize<RemoteProject>(File.ReadAllText(fullPath));
-            return project;
-        }
-
-        static void DeleteProjectData(string appName)
-        {
-            var fullPath = GetAppJsonPath(appName);
-            File.Delete(fullPath);
-        }
-
-        static string GetAppJsonPath(string appName)
-        {
-            var filename = $"{appName}.json";
-            return Path.Combine(GetAppDataFolder(), filename);        
         }
 
     }

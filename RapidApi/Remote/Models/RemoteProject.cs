@@ -10,12 +10,15 @@ namespace RapidApi.Remote.Models
         
         public string AppServicePlanId { get; set; }
         public string SubScriptionId { get; set; }
+        public string TenantId { get; set; }
         public string Region { get; set; }
         public string ResourceGroup { get; set; }
 
         public string StorageAccountName { get; set; }
         public string StorageAccountKey { get; set; }
         public string AzureFileShare { get; set; }
+
+        public bool SeedData { get; set; }
 
         public string StorageConnectionString
         {

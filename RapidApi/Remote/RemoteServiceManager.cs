@@ -78,10 +78,13 @@ namespace RapidApi.Remote
         /// <param name="appId"></param>
         /// <param name="schema"></param>
         /// <returns></returns>
-        public async Task<RemoteDeployment> Create(string appId, string schemaPath)
+        public async Task<RemoteDeployment> Create(string appId, string schemaPath, ProjectRunArgs projectRunArgs)
         {
             var project = new RemoteProject();
             project.AppId = appId;
+            project.SubScriptionId = azure.SubscriptionId;
+            project.TenantId = _tenantId;
+            project.SeedData = projectRunArgs.SeedData;
 
             var deployment = new RemoteDeployment();
             deployment.Project = project;
@@ -95,7 +98,6 @@ namespace RapidApi.Remote
             project.ResourceGroup = rgName;
             project.StorageAccountName = storageAccountName;
             project.AzureFileShare = shareName;
-           
 
 
             var region = Region.USCentral;
