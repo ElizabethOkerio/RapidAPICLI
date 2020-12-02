@@ -5,6 +5,7 @@ using Microsoft.Azure.Management.ResourceManager.Fluent.Authentication;
 using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
 using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Rest;
+using RapidApi.Common.Models;
 using RapidApi.Remote.Models;
 using System;
 using System.Collections.Generic;

@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Microsoft.Extensions.CommandLineUtils;
 using System.Reflection;
+using RapidApi.Config;
 
 namespace RapidApi
 {

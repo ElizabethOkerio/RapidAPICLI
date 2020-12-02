@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace RapidApi
+namespace RapidApi.Common.Models
 {
     public class ProjectRunArgs
     {

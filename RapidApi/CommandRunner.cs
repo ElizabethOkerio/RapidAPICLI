@@ -1,4 +1,6 @@
 ﻿using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
+using RapidApi.Common.Models;
+using RapidApi.Config;
 using RapidApi.Local;
 using RapidApi.Remote;
 using RapidApi.Remote.Models;

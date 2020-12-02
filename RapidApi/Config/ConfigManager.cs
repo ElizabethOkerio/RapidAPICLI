@@ -5,7 +5,7 @@ using System.IO;
 using System.Text;
 using System.Text.Json;
 
-namespace RapidApi
+namespace RapidApi.Config
 {
     class ConfigManager
     {

@@ -4,12 +4,15 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using RapidApi.Common.Models;
 
 namespace RapidApi.Local
 {
     class LocalRunner: IDisposable
     {
         private bool disposedValue;
+
+        private string Image { get; set};
 
         public int Port { get; set; }
         public string SchemaPath { get; set; }
@@ -20,8 +23,9 @@ namespace RapidApi.Local
         public ProjectRunArgs ProjectRunArgs { get; set; }
 
 
-        public LocalRunner(string schemaPath, int port, ProjectRunArgs args)
+        public LocalRunner(string containerImage, string schemaPath, int port, ProjectRunArgs args)
         {
+            Image = containerImage;
             Port = port;
             ProjectRunArgs = args;
             SchemaPath = schemaPath;
@@ -52,8 +56,7 @@ namespace RapidApi.Local
 
             var builder = new Builder()
                 .UseContainer()
-                .UseImage("rapidapiregistry.azurecr.io/rapidapimockserv:latest")
-                .WithCredential("rapidapiregistry.azurecr.io", "rapidapiregistry", "3RSdU=zGg=AIvjesICqISXdBbMiwYigk")
+                .UseImage(Image).WithCredential()
                 .ExposePort(Port, 80)
                 .KeepRunning()
                 .CopyOnStart(SchemaPath, "/app/Project.csdl");
