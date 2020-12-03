@@ -191,10 +191,13 @@ namespace RapidApi
                     Environment.Exit(0);
                 };
 
-                serverRunner.BeforeRestart = (path, port) => Console.WriteLine($"Changes detected to {csdl.FullName}, restarting server...");
+                serverRunner.OnError = e => Console.Error.WriteLine(e.Message);
+                serverRunner.OnSchemaChange = () => Console.WriteLine($"Changes detected to {csdl.FullName}...");
+                serverRunner.BeforeRestart = (path, port) => Console.WriteLine("Restarting server...");
                 serverRunner.AfterRestart = (path, port) => Console.WriteLine($"Server running on http://localhost:{port}/odata");
+                serverRunner.OnTerminate = () => Console.WriteLine("Terminating server...");
                 serverRunner.Start();
-                Console.WriteLine($"Server running on http://localhost:{port}/odata");
+
                 Console.WriteLine("Press any key to exit.");
                 Console.ReadKey();
             }

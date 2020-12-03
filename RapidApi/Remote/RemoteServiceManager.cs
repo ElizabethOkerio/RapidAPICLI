@@ -5,13 +5,12 @@ using Microsoft.Azure.Management.ResourceManager.Fluent.Authentication;
 using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
 using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Rest;
+using RapidApi.Cli.Common;
 using RapidApi.Common.Models;
 using RapidApi.Remote.Models;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -81,6 +80,9 @@ namespace RapidApi.Remote
         /// <returns></returns>
         public async Task<RemoteDeployment> Create(string appId, string schemaPath, ProjectRunArgs projectRunArgs)
         {
+            SchemaValidator.ValidateSchema(schemaPath);
+
+
             var project = new RemoteProject();
             project.AppId = appId;
             project.SubScriptionId = azure.SubscriptionId;
@@ -144,6 +146,7 @@ namespace RapidApi.Remote
         /// <returns></returns>
         public async Task UpdateSchema(RemoteProject project, string schemaPath)
         {
+            SchemaValidator.ValidateSchema(schemaPath);
             var shareClient = new ShareClient(project.StorageConnectionString, project.AzureFileShare);
             await UploadSchema(shareClient, schemaPath, RemoteCsdlFileDir, RemoteCsdlFileName);
             await azure.ContainerGroups.GetByResourceGroup(project.ResourceGroup, project.AppId).RestartAsync();
