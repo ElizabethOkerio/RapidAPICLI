@@ -76,8 +76,8 @@ namespace RapidApi
 
                 var schemaOption = command.Option("-s|--schema <SCHEMA>", "The path to the xml schema file.", CommandOptionType.SingleValue);
                 var appNameOption = command.Option("-a|--app <APPNAME>", "The unique name of the app to create.", CommandOptionType.SingleValue);
-                var tenantIdOption = command.Option("-t|--tenant <TENANTID>", "The Azure tenant ID to deploy to", CommandOptionType.SingleValue);
-                var subscriptionIdOption = command.Option("-i|--subscription <SUBSCRIPTIONID>", "The Azure subscription Id to use.", CommandOptionType.SingleValue);
+                var tenantIdOption = command.Option("-t|--tenant <TENANT>", "The Azure tenant ID to deploy to", CommandOptionType.SingleValue);
+                var subscriptionIdOption = command.Option("-i|--subscription <SUBSCRIPTION>", "The Azure subscription Id to use.", CommandOptionType.SingleValue);
                 var seedOption = command.Option("-d|--seed", "Whether to seed the database with random data", CommandOptionType.NoValue);
 
                 command.OnExecute(() => HandleCommand(app,
@@ -99,8 +99,8 @@ namespace RapidApi
 
                 var schemaOption = command.Option("-s|--schema <SCHEMA>", "The path to the xml schema file.", CommandOptionType.SingleValue);
                 var appNameOption = command.Option("-a|--app <APPNAME>", "The name of the app to update.", CommandOptionType.SingleValue);
-                var tenantIdOption = command.Option("-t|--tenant <TENANTID>", "The Azure tenant ID to deploy to", CommandOptionType.SingleValue);
-                var subscriptionIdOption = command.Option("-i|--subscription <SUBSCRIPTIONID>", "The Azure subscription Id to use.", CommandOptionType.SingleValue);
+                var tenantIdOption = command.Option("-t|--tenant <TENANT>", "The Azure tenant ID to deploy to", CommandOptionType.SingleValue);
+                var subscriptionIdOption = command.Option("-i|--subscription <SUBSCRIPTION>", "The Azure subscription Id to use.", CommandOptionType.SingleValue);
 
                 command.OnExecute(() => HandleCommand(app,
                     () => runner.UpdateRemoteService(

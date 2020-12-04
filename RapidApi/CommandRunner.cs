@@ -73,12 +73,15 @@ namespace RapidApi
                 throw new Exception("Please specify the app to update");
             }
 
+            var project = configManager.LoadProject(appId);
+
+            csdl ??= new FileInfo(project.LocalSchemaPath);
             if (csdl == null)
             {
                 throw new Exception("Please specify the schema file for your project");
             }
 
-            var project = configManager.LoadProject(appId);
+            
 
             tenantId ??= project.TenantId ?? config.Tenant;
             subscriptionId ??= project.SubScriptionId ?? config.Subscription;
@@ -88,10 +91,12 @@ namespace RapidApi
                 throw new Exception("Please provide value for tenant");
             }
 
+            app.Out.WriteLine($"Schema path: {csdl.FullName}");
             app.Out.WriteLine("Updating app, please wait...");
             var image = await imageProvider.GetCredentials();
             var remoteManager = new RemoteServiceManager(tenantId, subscriptionId, image);
             await remoteManager.UpdateSchema(project, csdl.FullName);
+            configManager.SaveProjectData(project);
             app.Out.WriteLine($"Update complete. App url is {project.AppUrl}");
 
         }

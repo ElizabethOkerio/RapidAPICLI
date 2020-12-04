@@ -79,12 +79,12 @@ namespace RapidApi.Remote
         {
             SchemaValidator.ValidateSchema(schemaPath);
 
-
             var project = new RemoteProject();
             project.AppId = appId;
             project.SubScriptionId = azure.SubscriptionId;
             project.TenantId = tenantId;
             project.SeedData = projectRunArgs.SeedData;
+            project.LocalSchemaPath = schemaPath;
 
             var deployment = new RemoteDeployment();
             deployment.Project = project;
@@ -147,6 +147,7 @@ namespace RapidApi.Remote
             var shareClient = new ShareClient(project.StorageConnectionString, project.AzureFileShare);
             await UploadSchema(shareClient, schemaPath, RemoteCsdlFileDir, RemoteCsdlFileName);
             await azure.ContainerGroups.GetByResourceGroup(project.ResourceGroup, project.AppId).RestartAsync();
+            project.LocalSchemaPath = schemaPath;
         }
 
         /// <summary>
