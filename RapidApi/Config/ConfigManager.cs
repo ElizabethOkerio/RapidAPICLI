@@ -7,8 +7,15 @@ using System.Text.Json;
 
 namespace RapidApi.Config
 {
-    class ConfigManager
+    class ConfigManager : IConfigManager
     {
+        readonly string currentVersion;
+
+        public ConfigManager(string currentVersion)
+        {
+            this.currentVersion = currentVersion;
+        }
+
         public string RootPath
         {
             get
@@ -32,7 +39,7 @@ namespace RapidApi.Config
             }
             catch
             {
-                return new RootConfig();
+                return new RootConfig() { Version = currentVersion };
             }
         }
 
@@ -49,6 +56,8 @@ namespace RapidApi.Config
             {
                 currentConfig.Subscription = config.Subscription;
             }
+
+            currentConfig.Version = currentVersion;
 
             var path = GetRootConfigPath();
             var content = JsonSerializer.Serialize(currentConfig);

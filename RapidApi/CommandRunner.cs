@@ -1,25 +1,24 @@
-﻿using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
+﻿using Microsoft.Extensions.CommandLineUtils;
 using RapidApi.Cli.Common;
 using RapidApi.Common.Models;
 using RapidApi.Config;
 using RapidApi.Local;
 using RapidApi.Remote;
-using RapidApi.Remote.Models;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace RapidApi
 {
     class CommandRunner
     {
-        ConfigManager configManager;
-        IImageCredentialsProvider imageProvider;
+        readonly IConfigManager configManager;
+        readonly IImageCredentialsProvider imageProvider;
+        readonly CommandLineApplication app;
 
-        public CommandRunner(ConfigManager configManager, IImageCredentialsProvider imageProvider)
+        public CommandRunner(CommandLineApplication app, IConfigManager configManager, IImageCredentialsProvider imageProvider)
         {
+            this.app = app;
             this.configManager = configManager;
             this.imageProvider = imageProvider;
         }
@@ -31,96 +30,69 @@ namespace RapidApi
 
             if (appId == null)
             {
-                Console.Error.WriteLine("Please specify unique app name for remote deployment");
-                Environment.Exit(1);
+                throw new Exception("Please specify unique app name for remote deployment");
             }
 
             if (csdl == null)
             {
-                Console.Error.WriteLine("Please specify the schema file for your project");
-                Environment.Exit(1);
+                throw new Exception("Please specify the schema file for your project");
             }
 
-            tenantId = tenantId ?? config.Tenant;
-            subscriptionId = subscriptionId ?? config.Subscription;
+            tenantId ??= config.Tenant;
+            subscriptionId ??= config.Subscription;
 
             if (string.IsNullOrEmpty(tenantId))
             {
-                Console.Error.WriteLine("Please provide value for tenant");
+                throw new Exception("Please provide value for tenant");
             }
 
-            Console.WriteLine($"Schema Path: {csdl.FullName}");
-            Console.WriteLine($"App service name: {appId}");
-            Console.WriteLine($"Tenant Id: {tenantId}");
-            Console.WriteLine($"Subscription Id: {subscriptionId}");
+            app.Out.WriteLine($"Schema Path: {csdl.FullName}");
+            app.Out.WriteLine($"App service name: {appId}");
+            app.Out.WriteLine($"Tenant Id: {tenantId}");
+            app.Out.WriteLine($"Subscription Id: {subscriptionId}");
 
-            try
+            var args = new ProjectRunArgs()
             {
-                Console.WriteLine("Deploying resources, please wait...");
-                var args = new ProjectRunArgs()
-                {
-                    SeedData = seedData
-                };
+                SeedData = seedData
+            };
 
-                var image = await imageProvider.GetCredentials();
-                var remoteManager = new RemoteServiceManager(tenantId, subscriptionId, image);
-                var deployment = await remoteManager.Create(appId, csdl.FullName, args);
-                var project = deployment.Project;
-
-                configManager.SaveProjectData(project);
-                Console.WriteLine($"App created successfully. Your app URL is: {project.AppUrl}");
-
-
-            }
-            catch (Exception ex)
-            {
-                Console.Error.WriteLine(ex.Message);
-            }
-
+            var image = await imageProvider.GetCredentials();
+            var remoteManager = new RemoteServiceManager(tenantId, subscriptionId, image);
+            var deployment = await remoteManager.Create(appId, csdl.FullName, args);
+            var project = deployment.Project;
+            configManager.SaveProjectData(project);
+            app.Out.WriteLine($"App created successfully. Your app URL is: {project.AppUrl}");
         }
 
-        public async Task UpdateRemoteService(FileInfo csdl, string appServiceName, string tenantId, string subscriptionId)
+        public async Task UpdateRemoteService(FileInfo csdl, string appId, string tenantId, string subscriptionId)
         {
             var config = configManager.GetRootConfig();
 
-            if (appServiceName == null)
+            if (appId == null)
             {
-                Console.Error.WriteLine("Please specify the app to update");
-                Environment.Exit(1);
+                throw new Exception("Please specify the app to update");
             }
 
             if (csdl == null)
             {
-                Console.Error.WriteLine("Please specify the schema file for your project");
-                Environment.Exit(1);
+                throw new Exception("Please specify the schema file for your project");
             }
 
-            
+            var project = configManager.LoadProject(appId);
 
-            try
+            tenantId ??= project.TenantId ?? config.Tenant;
+            subscriptionId ??= project.SubScriptionId ?? config.Subscription;
+
+            if (string.IsNullOrEmpty(tenantId))
             {
-                var project = configManager.LoadProject(appServiceName);
-
-                tenantId = tenantId ?? project.TenantId ?? config.Tenant;
-                subscriptionId = subscriptionId ?? project.SubScriptionId ?? config.Subscription;
-
-                if (string.IsNullOrEmpty(tenantId))
-                {
-                    throw new Exception("Please provide value for tenant");
-                }
-
-                Console.WriteLine("Updating app, please wait...");
-                var image = await imageProvider.GetCredentials();
-                var remoteManager = new RemoteServiceManager(tenantId, subscriptionId, image);
-                await remoteManager.UpdateSchema(project, csdl.FullName);
-                Console.WriteLine($"Update complete. App url is {project.AppUrl}");
-            }
-            catch (Exception e)
-            {
-                Console.Error.WriteLine(e.Message);
+                throw new Exception("Please provide value for tenant");
             }
 
-
+            app.Out.WriteLine("Updating app, please wait...");
+            var image = await imageProvider.GetCredentials();
+            var remoteManager = new RemoteServiceManager(tenantId, subscriptionId, image);
+            await remoteManager.UpdateSchema(project, csdl.FullName);
+            app.Out.WriteLine($"Update complete. App url is {project.AppUrl}");
 
         }
 
@@ -128,45 +100,37 @@ namespace RapidApi
         {
             if (appName == null)
             {
-                Console.Error.WriteLine("Please specify the app to delete");
-                Environment.Exit(1);
+                throw new Exception("Please specify the app to delete");
             }
 
             var config = configManager.GetRootConfig();
 
-            try
+            var project = configManager.LoadProject(appName);
+
+            tenantId ??= project.TenantId ?? config.Tenant;
+            subscriptionId ??= project.SubScriptionId ?? config.Subscription;
+
+            if (string.IsNullOrEmpty(tenantId))
             {
-                var project = configManager.LoadProject(appName);
-
-                tenantId = tenantId ?? project.TenantId ?? config.Tenant;
-                subscriptionId = subscriptionId ?? project.SubScriptionId ?? config.Subscription;
-
-                if (string.IsNullOrEmpty(tenantId))
-                {
-                    throw new Exception("Please provide value for tenant");
-                }
-
-
-                var image = await imageProvider.GetCredentials();
-                var remoteManager = new RemoteServiceManager(tenantId, subscriptionId, image);
-
-                Console.WriteLine($"Deleting {appName} and related resources...");
-                await remoteManager.Delete(project);
-                configManager.DeleteProjectData(appName);
-                Console.WriteLine($"The app {appName} and its related resources have been delete.");
+                throw new Exception("Please provide value for tenant");
             }
-            catch (Exception ex)
-            {
-                Console.Error.WriteLine(ex.Message);
-            }
+
+
+            var image = await imageProvider.GetCredentials();
+            var remoteManager = new RemoteServiceManager(tenantId, subscriptionId, image);
+
+            app.Out.WriteLine($"Deleting {appName} and related resources...");
+            await remoteManager.Delete(project);
+            configManager.DeleteProjectData(appName);
+            app.Out.WriteLine($"The app {appName} and its related resources have been delete.");
 
         }
 
-        public void DeployLocally(FileInfo csdl, string portString, bool seedData)
+        public async Task DeployLocally(FileInfo csdl, string portString, bool seedData)
         {
             if (csdl != null)
             {
-                Console.WriteLine($"Schema Path: {csdl.FullName}");
+                app.Out.WriteLine($"Schema Path: {csdl.FullName}");
             }
 
             Random r = new Random();
@@ -183,10 +147,13 @@ namespace RapidApi
                 SeedData = seedData
             };
 
-            var updater = new ServiceUpdater();
+            var image = await imageProvider.GetCredentials();
+
+            app.Out.WriteLine("Updating core service...");
+            var updater = new ServiceUpdater(image);
             updater.UpdateService();
 
-            using (var serverRunner = new LocalRunner(csdl.FullName, port, args))
+            using (var serverRunner = new LocalRunner(csdl.FullName, port, args, image))
             {
                 Console.CancelKeyPress += (sender, args) =>
                 {
@@ -195,14 +162,14 @@ namespace RapidApi
                     Environment.Exit(0);
                 };
 
-                serverRunner.OnError = e => Console.Error.WriteLine(e.Message);
-                serverRunner.OnSchemaChange = () => Console.WriteLine($"Changes detected to {csdl.FullName}...");
-                serverRunner.BeforeRestart = (path, port) => Console.WriteLine("Restarting server...");
-                serverRunner.AfterRestart = (path, port) => Console.WriteLine($"Server running on http://localhost:{port}/odata");
-                serverRunner.OnTerminate = () => Console.WriteLine("Terminating server...");
+                serverRunner.OnError = e => app.Error.WriteLine(e.Message);
+                serverRunner.OnSchemaChange = () => app.Out.WriteLine($"Changes detected to {csdl.FullName}...");
+                serverRunner.BeforeRestart = (path, port) => app.Out.WriteLine("Restarting server...");
+                serverRunner.AfterRestart = (path, port) => app.Out.WriteLine($"Server running on http://localhost:{port}/odata");
+                serverRunner.OnTerminate = () => app.Out.WriteLine("Terminating server...");
                 serverRunner.Start();
 
-                Console.WriteLine("Press any key to exit.");
+                app.Out.WriteLine("Press any key to exit.");
                 Console.ReadKey();
             }
 
@@ -213,9 +180,9 @@ namespace RapidApi
             var config = new RootConfig() { Subscription = subscription, Tenant = tenant };
             var updatedConfig = configManager.SaveRootConfig(config);
 
-            Console.WriteLine("Config settings");
-            Console.WriteLine("Tenant: {0}", updatedConfig.Tenant);
-            Console.WriteLine("Subscription: {0}", updatedConfig.Subscription);
+            app.Out.WriteLine("Config settings");
+            app.Out.WriteLine("Tenant: {0}", updatedConfig.Tenant);
+            app.Out.WriteLine("Subscription: {0}", updatedConfig.Subscription);
         }
 
         public void ListRemoteProjects()
@@ -224,11 +191,11 @@ namespace RapidApi
 
             foreach (var project in projects)
             {
-                Console.WriteLine("App name: {0}", project.AppId);
-                Console.WriteLine("URL: {0}", project.AppUrl);
-                Console.WriteLine("Subscription: {0}", project.SubScriptionId);
-                Console.WriteLine("Tenant: {0}", project.TenantId);
-                Console.WriteLine();
+                app.Out.WriteLine("App name: {0}", project.AppId);
+                app.Out.WriteLine("URL: {0}", project.AppUrl);
+                app.Out.WriteLine("Subscription: {0}", project.SubScriptionId);
+                app.Out.WriteLine("Tenant: {0}", project.TenantId);
+                app.Out.WriteLine();
             }
         }
     }
