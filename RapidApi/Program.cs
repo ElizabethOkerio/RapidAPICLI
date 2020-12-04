@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.CommandLineUtils;
 using System.Reflection;
 using RapidApi.Config;
+using RapidApi.Cli.Common;
 
 namespace RapidApi
 {
@@ -14,7 +15,8 @@ namespace RapidApi
         {
 
             var configManager = new ConfigManager();
-            var runner = new CommandRunner(configManager);
+            var imageCredsProvider = new KeyVaultImageCredentialsProvider();
+            var runner = new CommandRunner(configManager, imageCredsProvider);
 
             var app = new CommandLineApplication();
 
@@ -162,6 +164,5 @@ namespace RapidApi
                 Console.WriteLine("Unable to execute application: {0}", ex.Message);
             }
         }
-
     }
 }

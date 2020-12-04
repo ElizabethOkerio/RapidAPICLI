@@ -1,4 +1,5 @@
 ﻿using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
+using RapidApi.Cli.Common;
 using RapidApi.Common.Models;
 using RapidApi.Config;
 using RapidApi.Local;
@@ -15,18 +16,20 @@ namespace RapidApi
     class CommandRunner
     {
         ConfigManager configManager;
+        IImageCredentialsProvider imageProvider;
 
-        public CommandRunner(ConfigManager configManager)
+        public CommandRunner(ConfigManager configManager, IImageCredentialsProvider imageProvider)
         {
             this.configManager = configManager;
+            this.imageProvider = imageProvider;
         }
 
-        public async Task DeployRemotely(FileInfo csdl, string appServiceName, string tenantId, string subscriptionId, bool seedData)
+        public async Task DeployRemotely(FileInfo csdl, string appId, string tenantId, string subscriptionId, bool seedData)
         {
 
             var config = configManager.GetRootConfig();
 
-            if (appServiceName == null)
+            if (appId == null)
             {
                 Console.Error.WriteLine("Please specify unique app name for remote deployment");
                 Environment.Exit(1);
@@ -47,14 +50,10 @@ namespace RapidApi
             }
 
             Console.WriteLine($"Schema Path: {csdl.FullName}");
-            Console.WriteLine($"App service name: {appServiceName}");
+            Console.WriteLine($"App service name: {appId}");
             Console.WriteLine($"Tenant Id: {tenantId}");
             Console.WriteLine($"Subscription Id: {subscriptionId}");
 
-            string AppId = appServiceName;
-            //string SubscriptionId = "e8a5d058-e1b5-48f4-b1ff-b3bc830fb899";
-
-            var remoteManager = new RemoteServiceManager(tenantId, subscriptionId);
             try
             {
                 Console.WriteLine("Deploying resources, please wait...");
@@ -62,7 +61,10 @@ namespace RapidApi
                 {
                     SeedData = seedData
                 };
-                var deployment = await remoteManager.Create(AppId, csdl.FullName, args);
+
+                var image = await imageProvider.GetCredentials();
+                var remoteManager = new RemoteServiceManager(tenantId, subscriptionId, image);
+                var deployment = await remoteManager.Create(appId, csdl.FullName, args);
                 var project = deployment.Project;
 
                 configManager.SaveProjectData(project);
@@ -107,9 +109,9 @@ namespace RapidApi
                     throw new Exception("Please provide value for tenant");
                 }
 
-
                 Console.WriteLine("Updating app, please wait...");
-                var remoteManager = new RemoteServiceManager(tenantId, subscriptionId);
+                var image = await imageProvider.GetCredentials();
+                var remoteManager = new RemoteServiceManager(tenantId, subscriptionId, image);
                 await remoteManager.UpdateSchema(project, csdl.FullName);
                 Console.WriteLine($"Update complete. App url is {project.AppUrl}");
             }
@@ -144,7 +146,9 @@ namespace RapidApi
                     throw new Exception("Please provide value for tenant");
                 }
 
-                var remoteManager = new RemoteServiceManager(tenantId, subscriptionId);
+
+                var image = await imageProvider.GetCredentials();
+                var remoteManager = new RemoteServiceManager(tenantId, subscriptionId, image);
 
                 Console.WriteLine($"Deleting {appName} and related resources...");
                 await remoteManager.Delete(project);
