@@ -33,10 +33,14 @@ namespace RapidApi.Cli
                 GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;
             var app = new CommandLineApplication();
             var configManager = new UserConfigManager(version);
+
             var imageCredsProvider = new KeyVaultImageCredentialsProvider(
-                settings.KeyVault.ClientId,
                 settings.KeyVault.TenantId,
-                settings.KeyVault.VaultUrl);
+                settings.KeyVault.VaultUrl)
+            {
+                OnAuthenticating = () => app.Out.WriteLine("Signing into your Microsoft Corp account...")
+            };
+
             var runner = new CommandRunner(app, configManager, imageCredsProvider);
 
             app.Name = "RapidApi";
@@ -157,7 +161,7 @@ namespace RapidApi.Cli
 
                 command.OnExecute(() => HandleCommand(app,
                     () => runner.UpdateRemoteService(
-                        new FileInfo(schemaOption.Value()),
+                        schemaOption.Value(),
                         appNameOption.Value(),
                         tenantIdOption.Value(),
                         subscriptionIdOption.Value())));

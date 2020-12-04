@@ -20,11 +20,8 @@ namespace RapidApi.Cli.Common
         private const string DEFAULT_USERNAME_KEY = "ImageUsername";
         private const string DEFAULT_PASSWORD_KEY = "ImagePassword";
 
-        private readonly string redirectUrl = "http://localhost";
-
-        public KeyVaultImageCredentialsProvider(string clientId, string tenantId, string vaultUrl) : this
-            (clientId,
-            tenantId,
+        public KeyVaultImageCredentialsProvider(string tenantId, string vaultUrl) : this
+            (tenantId,
             vaultUrl,
             nameKey: DEFAULT_NAME_KEY,
             serverKey: DEFAULT_SERVER_KEY,
@@ -33,7 +30,6 @@ namespace RapidApi.Cli.Common
         { }
 
         public KeyVaultImageCredentialsProvider(
-            string clientId,
             string tenantId,
             string vaultUrl,
             string nameKey,
@@ -49,6 +45,8 @@ namespace RapidApi.Cli.Common
             this.passwordKey = passwordKey;
         }
 
+        public Action OnAuthenticating { get; set; }
+
         public async Task<ImageCredentials> GetCredentials()
         {
             var options = new InteractiveBrowserCredentialOptions()
@@ -56,6 +54,7 @@ namespace RapidApi.Cli.Common
                 TenantId = tenantId,
             };
 
+            OnAuthenticating?.Invoke();
             var credential = new InteractiveBrowserCredential(options);
             var client = new SecretClient(new Uri(vaultUrl), credential);
 
@@ -73,8 +72,8 @@ namespace RapidApi.Cli.Common
             {
                 Name = name.Value.Value,
                 Server = secrets[0].Value.Value,
-                Password = secrets[1].Value.Value,
-                Username = secrets[2].Value.Value
+                Username = secrets[1].Value.Value,
+                Password = secrets[2].Value.Value
             };
         }
     }

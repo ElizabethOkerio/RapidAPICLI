@@ -2,7 +2,7 @@
   "profiles": {
     "RapidApi": {
       "commandName": "Project",
-      "commandLineArgs": "run --schema C:\\Users\\clhabins\\Desktop\\TrippinServiceRW.xml --seed"
+      "commandLineArgs": "update --app habbestmock1"
     }
   }
 }
