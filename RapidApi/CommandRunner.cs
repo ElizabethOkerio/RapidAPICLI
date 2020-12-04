@@ -200,6 +200,7 @@ namespace RapidApi
                 app.Out.WriteLine("URL: {0}", project.AppUrl);
                 app.Out.WriteLine("Subscription: {0}", project.SubScriptionId);
                 app.Out.WriteLine("Tenant: {0}", project.TenantId);
+                app.Out.WriteLine("Schema path: {0}", project.LocalSchemaPath);
                 app.Out.WriteLine();
             }
         }
