@@ -27,7 +27,7 @@ Subscription ID for later use with RapidApi
 ## How to install
 
 ```
-dotnet tool install -g RapidApi.Cli --version 1.0.0-alpha2 --add-source https://identitydivision.pkgs.visualstudio.com/OData/_packaging/ODataTools/nuget/v3/index.json
+dotnet tool install -g RapidApi.Cli --version 1.0.0-alpha-2 --add-source https://identitydivision.pkgs.visualstudio.com/OData/_packaging/ODataTools/nuget/v3/index.json
 ```
 
 Note, this tool is only available to internal users.
