@@ -7,7 +7,7 @@ namespace RapidApi.Cli.Common
 {
     class AuthenticationResultAzureTokenCredential: TokenCredential
     {
-        AuthenticationResult authResult;
+        readonly AuthenticationResult authResult;
 
         public AuthenticationResultAzureTokenCredential(AuthenticationResult auth)
         {

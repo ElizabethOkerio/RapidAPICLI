@@ -6,11 +6,11 @@ using System.Text.Json;
 
 namespace RapidApi.Config
 {
-    class ConfigManager : IConfigManager
+    class UserConfigManager : IUserConfigManager
     {
         readonly string currentVersion;
 
-        public ConfigManager(string currentVersion)
+        public UserConfigManager(string currentVersion)
         {
             this.currentVersion = currentVersion;
         }
@@ -26,23 +26,23 @@ namespace RapidApi.Config
             }
         }
 
-        public RootConfig GetRootConfig()
+        public RootUserConfig GetRootConfig()
         {
             var path = GetRootConfigPath();
 
             try
             {
                 var content = File.ReadAllText(path);
-                var config = JsonSerializer.Deserialize<RootConfig>(content);
+                var config = JsonSerializer.Deserialize<RootUserConfig>(content);
                 return config;
             }
             catch
             {
-                return new RootConfig() { Version = currentVersion };
+                return new RootUserConfig() { Version = currentVersion };
             }
         }
 
-        public RootConfig SaveRootConfig(RootConfig config)
+        public RootUserConfig SaveRootConfig(RootUserConfig config)
         {
             var currentConfig = GetRootConfig();
 

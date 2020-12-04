@@ -12,11 +12,11 @@ namespace RapidApi
 {
     class CommandRunner
     {
-        readonly IConfigManager configManager;
+        readonly IUserConfigManager configManager;
         readonly IImageCredentialsProvider imageProvider;
         readonly CommandLineApplication app;
 
-        public CommandRunner(CommandLineApplication app, IConfigManager configManager, IImageCredentialsProvider imageProvider)
+        public CommandRunner(CommandLineApplication app, IUserConfigManager configManager, IImageCredentialsProvider imageProvider)
         {
             this.app = app;
             this.configManager = configManager;
@@ -182,7 +182,7 @@ namespace RapidApi
 
         public void SetConfig(string tenant, string subscription)
         {
-            var config = new RootConfig() { Subscription = subscription, Tenant = tenant };
+            var config = new RootUserConfig() { Subscription = subscription, Tenant = tenant };
             var updatedConfig = configManager.SaveRootConfig(config);
 
             app.Out.WriteLine("Config settings");
