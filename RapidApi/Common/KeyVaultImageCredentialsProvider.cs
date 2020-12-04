@@ -1,6 +1,5 @@
 ﻿using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
-using Microsoft.Identity.Client;
 using RapidApi.Cli.Common.Models;
 using System;
 using System.Threading.Tasks;
@@ -15,7 +14,6 @@ namespace RapidApi.Cli.Common
         readonly string serverKey;
         readonly string usernameKey;
         readonly string passwordKey;
-        readonly IPublicClientApplication app;
 
         private const string DEFAULT_SERVER_KEY = "ImageServer";
         private const string DEFAULT_NAME_KEY = "ImageName";
@@ -49,11 +47,6 @@ namespace RapidApi.Cli.Common
             this.serverKey = serverKey;
             this.usernameKey = usernameKey;
             this.passwordKey = passwordKey;
-
-            app = PublicClientApplicationBuilder.Create(clientId)
-                .WithRedirectUri(redirectUrl)
-                .WithAuthority(AzureCloudInstance.AzurePublic, tenantId)
-                .Build();
         }
 
         public async Task<ImageCredentials> GetCredentials()
