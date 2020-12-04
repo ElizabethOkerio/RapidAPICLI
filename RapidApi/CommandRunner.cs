@@ -12,11 +12,11 @@ namespace RapidApi
 {
     class CommandRunner
     {
-        readonly IConfigManager configManager;
+        readonly IUserConfigManager configManager;
         readonly IImageCredentialsProvider imageProvider;
         readonly CommandLineApplication app;
 
-        public CommandRunner(CommandLineApplication app, IConfigManager configManager, IImageCredentialsProvider imageProvider)
+        public CommandRunner(CommandLineApplication app, IUserConfigManager configManager, IImageCredentialsProvider imageProvider)
         {
             this.app = app;
             this.configManager = configManager;
@@ -47,7 +47,7 @@ namespace RapidApi
             }
 
             app.Out.WriteLine($"Schema Path: {csdl.FullName}");
-            app.Out.WriteLine($"App service name: {appId}");
+            app.Out.WriteLine($"App name: {appId}");
             app.Out.WriteLine($"Tenant Id: {tenantId}");
             app.Out.WriteLine($"Subscription Id: {subscriptionId}");
 
@@ -57,14 +57,18 @@ namespace RapidApi
             };
 
             var image = await imageProvider.GetCredentials();
-            var remoteManager = new RemoteServiceManager(tenantId, subscriptionId, image);
+            var remoteManager = new RemoteServiceManager(tenantId, subscriptionId, image)
+            {
+                OnAuthenticating = () => app.Out.WriteLine("Signing into your Azure subscription...")
+            };
+
             var deployment = await remoteManager.Create(appId, csdl.FullName, args);
             var project = deployment.Project;
             configManager.SaveProjectData(project);
             app.Out.WriteLine($"App created successfully. Your app URL is: {project.AppUrl}");
         }
 
-        public async Task UpdateRemoteService(FileInfo csdl, string appId, string tenantId, string subscriptionId)
+        public async Task UpdateRemoteService(string csdlPath, string appId, string tenantId, string subscriptionId)
         {
             var config = configManager.GetRootConfig();
 
@@ -75,13 +79,13 @@ namespace RapidApi
 
             var project = configManager.LoadProject(appId);
 
-            csdl ??= new FileInfo(project.LocalSchemaPath);
-            if (csdl == null)
+            csdlPath ??= project.LocalSchemaPath;
+            if (csdlPath == null)
             {
                 throw new Exception("Please specify the schema file for your project");
             }
 
-            
+            var csdl = new FileInfo(csdlPath);
 
             tenantId ??= project.TenantId ?? config.Tenant;
             subscriptionId ??= project.SubScriptionId ?? config.Subscription;
@@ -93,8 +97,13 @@ namespace RapidApi
 
             app.Out.WriteLine($"Schema path: {csdl.FullName}");
             app.Out.WriteLine("Updating app, please wait...");
+
             var image = await imageProvider.GetCredentials();
-            var remoteManager = new RemoteServiceManager(tenantId, subscriptionId, image);
+            var remoteManager = new RemoteServiceManager(tenantId, subscriptionId, image)
+            {
+                OnAuthenticating = () => app.Out.WriteLine("Signing into your Azure subscription...")
+            };
+
             await remoteManager.UpdateSchema(project, csdl.FullName);
             configManager.SaveProjectData(project);
             app.Out.WriteLine($"Update complete. App url is {project.AppUrl}");
@@ -122,7 +131,10 @@ namespace RapidApi
 
 
             var image = await imageProvider.GetCredentials();
-            var remoteManager = new RemoteServiceManager(tenantId, subscriptionId, image);
+            var remoteManager = new RemoteServiceManager(tenantId, subscriptionId, image)
+            {
+                OnAuthenticating = () => app.Out.WriteLine("Signing into your Azure subscription...")
+            };
 
             app.Out.WriteLine($"Deleting {appName} and related resources...");
             await remoteManager.Delete(project);
@@ -182,7 +194,7 @@ namespace RapidApi
 
         public void SetConfig(string tenant, string subscription)
         {
-            var config = new RootConfig() { Subscription = subscription, Tenant = tenant };
+            var config = new RootUserConfig() { Subscription = subscription, Tenant = tenant };
             var updatedConfig = configManager.SaveRootConfig(config);
 
             app.Out.WriteLine("Config settings");

@@ -3,13 +3,13 @@ using System.Collections.Generic;
 
 namespace RapidApi.Config
 {
-    interface IConfigManager
+    interface IUserConfigManager
     {
         void DeleteProjectData(string appName);
-        RootConfig GetRootConfig();
+        RootUserConfig GetRootConfig();
         IEnumerable<RemoteProject> GetSavedProjects();
         RemoteProject LoadProject(string appName);
         void SaveProjectData(RemoteProject project);
-        RootConfig SaveRootConfig(RootConfig config);
+        RootUserConfig SaveRootConfig(RootUserConfig config);
     }
 }

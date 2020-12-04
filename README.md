@@ -1,8 +1,6 @@
 # RapidApi
 
-RapidApi allows you to launch an OData mock service based on a provided schema without writing code.
-
-The CLI allows you to quickly create a functioning OData service that you can run locally or deploy remotely.
+RapidApi allows you to create and deploy an OData mock service based on a provided schema without writing code.
 
 ## Prerequisites:
 - You need to have [Docker](https://www.docker.com/) installed on your machine in order to run local mock servers
@@ -29,14 +27,23 @@ Subscription ID for later use with RapidApi
 ## How to install
 
 ```
-dotnet tool install RapidApi.Cli --version 1.0.0-alpha
+dotnet tool install -g RapidApi.Cli --version 1.0.0-alpha-2 --add-source https://identitydivision.pkgs.visualstudio.com/OData/_packaging/ODataTools/nuget/v3/index.json
 ```
 
-Or to insall globally
+Note, this tool is only available to internal users.
 
-```
-dotnet tool install --global RapidApi.Cli --version 1.0.0-alpha
-```
+## Authentication
+
+The application needs to access a docker image that's only accessible to internal users (MS Employees),
+therefore it will prompt you to sign into your MS account the first time you use the tool.
+
+The application also needs access to your Azure account in order to deploy resources when to the
+Azure subscription that you specify. Therefore it will also prompt you to sign into account
+associated with the tenant and subscription you provided. This only happens when you're managing
+a remote service (deploying, updating or deleting).
+
+So when the app launches a browser window for you to log in, please check the message on the terminal
+window to know which account you're expected to log into.
 
 ## How to run.
 
@@ -69,7 +76,7 @@ You may be required to authenticate the first time you use that subscription. If
 the default subscription for your account will be used.
 
 
-Upon successful deployment the application displays URL to use to access the service.
+Upon successful deployment the application displays the URL to use to access the service.
 
 If you have configured a global tenant and/or subscription for use with RapidApi using the `rapidapi config` command, you
 can omit those options here:
@@ -84,6 +91,13 @@ To update a previously deployed remote app, run the `update` command providing t
 
 ```
 rapidapi update --app remoteappname --schema path/to/updated/schema.xml
+```
+
+You can omit the schema path, in which case the tool will try to use
+the last schema that was used to deploy your service:
+
+```
+rapidapi update --app remoteappname
 ```
 
 ### Deleting a remote app
@@ -135,10 +149,3 @@ Example:
 rapidapi run --help
 ```
 
-## Consuming the service on .Net or your Xamarin app.
-
-1. On visual studio install the[ OData Connected service extension](https://marketplace.visualstudio.com/items?itemName=laylaliu.ODataConnectedService).
-2. [Generate the client](https://devblogs.microsoft.com/odata/odata-connected-service-0-4-0-release/) code using the OData Connected service. 
-3. Enjoy. 
-
-For other languages and platforms kindly consult [Odata.org/Libraries](https://www.odata.org/libraries/)

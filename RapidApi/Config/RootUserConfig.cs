@@ -4,7 +4,7 @@ using System.Text;
 
 namespace RapidApi.Config
 {
-    class RootConfig
+    class RootUserConfig
     {
         public string Version { get; set; }
         public string Tenant { get; set; }
