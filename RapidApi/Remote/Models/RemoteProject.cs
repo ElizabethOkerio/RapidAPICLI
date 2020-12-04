@@ -17,7 +17,7 @@ namespace RapidApi.Remote.Models
         public string StorageAccountName { get; set; }
         public string StorageAccountKey { get; set; }
         public string AzureFileShare { get; set; }
-
+        public string LocalSchemaPath { get; set; }
         public bool SeedData { get; set; }
 
         public string StorageConnectionString

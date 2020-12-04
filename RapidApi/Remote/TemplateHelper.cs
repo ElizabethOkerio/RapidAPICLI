@@ -1,4 +1,5 @@
-﻿using RapidApi.Remote.Models;
+﻿using RapidApi.Cli.Common.Models;
+using RapidApi.Remote.Models;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -8,7 +9,7 @@ namespace RapidApi.Remote
     static class TemplateHelper
     {
 
-        public static ContainerDeploymentTemplate CreateDeploymentTemplate(RemoteProject project, string registryServer, string registryUsername, string registryPassword)
+        public static ContainerDeploymentTemplate CreateDeploymentTemplate(RemoteProject project, ImageCredentials image)
         {
             // see: https://docs.microsoft.com/en-us/azure/container-instances/container-instances-volume-azure-files
             var template = new ContainerDeploymentTemplate()
@@ -17,7 +18,7 @@ namespace RapidApi.Remote
                 ContentVersion = "1.0.0.0",
                 Variables = new ContainerDeploymentTemplate.VariablesModel()
                 {
-                    ContainerImage = "rapidapiregistry.azurecr.io/rapidapimockserv:latest",
+                    ContainerImage = image.Name,
                     ContainerName = project.AppId
                 },
                 Resources = new List<ContainerDeploymentTemplate.ResourceModel>()
@@ -131,9 +132,9 @@ namespace RapidApi.Remote
                             {
                                 new ContainerDeploymentTemplate.ImageRegistryCredentialsModel()
                                 {
-                                    Server = registryServer,
-                                    Username = registryUsername,
-                                    Password = registryPassword
+                                    Server = image.Server,
+                                    Username = image.Username,
+                                    Password = image.Password
                                 }
                             }
                         }

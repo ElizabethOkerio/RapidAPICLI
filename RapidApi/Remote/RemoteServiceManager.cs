@@ -5,34 +5,36 @@ using Microsoft.Azure.Management.ResourceManager.Fluent.Authentication;
 using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
 using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Rest;
+using RapidApi.Cli.Common;
+using RapidApi.Cli.Common.Models;
+using RapidApi.Common.Models;
 using RapidApi.Remote.Models;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace RapidApi.Remote
 {
-    public class RemoteServiceManager
+    class RemoteServiceManager
     {
-        private string _tenantId;
+        private string tenantId;
         private IAzure azure;
-        private string registryServer;
-        private string registryUsername;
-        private string registryPassword;
+        private ImageCredentials image;
 
         private static readonly string RemoteCsdlFileName = "Project.csdl";
         private static readonly string RemoteCsdlFileDir = "schema";
         
 
-        public RemoteServiceManager(string tenantId, string subscriptionId)
+        public RemoteServiceManager(string tenantId, string subscriptionId, ImageCredentials image)
         {
-            _tenantId = tenantId;
+            this.tenantId = tenantId;
+            this.image = image;
+
             var token = GetToken(tenantId).Result;
             var tokenCredentials = new TokenCredentials(token);
+            
 
             if (subscriptionId == null)
             {
@@ -58,11 +60,6 @@ namespace RapidApi.Remote
                         AzureEnvironment.AzureGlobalCloud))
                     .WithSubscription(subscriptionId);
             }
-
-
-            registryServer = "rapidapiregistry.azurecr.io";
-            registryUsername = "rapidapiregistry";
-            registryPassword = "3RSdU=zGg=AIvjesICqISXdBbMiwYigk";
         }
 
         public async Task<string> GetToken(string tenantId)
@@ -80,11 +77,14 @@ namespace RapidApi.Remote
         /// <returns></returns>
         public async Task<RemoteDeployment> Create(string appId, string schemaPath, ProjectRunArgs projectRunArgs)
         {
+            SchemaValidator.ValidateSchema(schemaPath);
+
             var project = new RemoteProject();
             project.AppId = appId;
             project.SubScriptionId = azure.SubscriptionId;
-            project.TenantId = _tenantId;
+            project.TenantId = tenantId;
             project.SeedData = projectRunArgs.SeedData;
+            project.LocalSchemaPath = schemaPath;
 
             var deployment = new RemoteDeployment();
             deployment.Project = project;
@@ -121,7 +121,7 @@ namespace RapidApi.Remote
             // upload CSDL
             await UploadSchema(shareClient, schemaPath, RemoteCsdlFileDir, RemoteCsdlFileName);
 
-            var template = TemplateHelper.CreateDeploymentTemplate(project, registryServer, registryUsername, registryPassword);
+            var template = TemplateHelper.CreateDeploymentTemplate(project, image);
             var templateJson = JsonSerializer.Serialize(template);
             await azure.Deployments.Define(deployment.DeploymentName)
                     .WithExistingResourceGroup(rgName)
@@ -143,9 +143,11 @@ namespace RapidApi.Remote
         /// <returns></returns>
         public async Task UpdateSchema(RemoteProject project, string schemaPath)
         {
+            SchemaValidator.ValidateSchema(schemaPath);
             var shareClient = new ShareClient(project.StorageConnectionString, project.AzureFileShare);
             await UploadSchema(shareClient, schemaPath, RemoteCsdlFileDir, RemoteCsdlFileName);
             await azure.ContainerGroups.GetByResourceGroup(project.ResourceGroup, project.AppId).RestartAsync();
+            project.LocalSchemaPath = schemaPath;
         }
 
         /// <summary>
